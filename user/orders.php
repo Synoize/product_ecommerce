@@ -1,4 +1,5 @@
 <?php
+
 /**
  * User Orders Page
  * Order history for logged in users
@@ -43,127 +44,204 @@ foreach ($orders as $order) {
         <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
             <!-- Sidebar -->
             <?php require_once __DIR__ . '/../includes/profile_sidebar.php'; ?>
-            
+
             <!-- Orders List -->
             <div class="md:col-span-3">
                 <div class="bg-white md:border md:rounded-lg md:shadow-sm md:p-8">
                     <h4 class="text-2xl font-bold text-gray-900 mb-6">My Orders</h4>
-                    
+
                     <?php if (empty($orders)): ?>
-                    <div class="text-center py-12">
-                        <i class="fas fa-box-open text-6xl text-gray-300 mb-4"></i>
-                        <h5 class="text-xl font-semibold text-gray-900 mb-2">No orders yet</h5>
-                        <p class="text-gray-500 mb-6">Start shopping to see your orders here!</p>
-                        <a href="<?php echo BASE_URL; ?>shop.php" class="inline-flex items-center bg-accent hover:bg-accent-800 text-white font-semibold py-3 px-6 rounded-full transition hover:shadow-sm">
-                            <i class="fas fa-shopping-bag mr-2"></i>Start Shopping
-                        </a>
-                    </div>
-                    <?php else: ?>
-                    <div class="space-y-4" id="ordersAccordion">
-                        <?php foreach ($orders as $index => $order): 
-                            $statusColors = [
-                                'pending' => 'bg-yellow-100 text-yellow-700',
-                                'processing' => 'bg-blue-100 text-blue-700',
-                                'shipped' => 'bg-purple-100 text-purple-700',
-                                'delivered' => 'bg-green-100 text-green-700',
-                                'cancelled' => 'bg-red-100 text-red-700'
-                            ];
-                            $statusClass = $statusColors[$order['status']] ?? 'bg-gray-100 text-gray-700';
-                        ?>
-                        <div class="border border-gray-200 rounded-xl overflow-hidden">
-                            <button class="w-full px-6 py-4 flex justify-between items-center bg-gray-50 hover:bg-gray-100 transition text-left" 
-                                    onclick="document.getElementById('order<?php echo $order['id']; ?>').classList.toggle('hidden')">
-                                <div class="flex items-center space-x-4">
-                                    <span class="font-bold text-gray-900">Order #<?php echo $order['id']; ?></span>
-                                    <span class="text-gray-500"><?php echo date('M d, Y', strtotime($order['created_at'])); ?></span>
-                                </div>
-                                <div class="flex items-center space-x-3">
-                                    <span class="px-3 py-1 rounded-full text-xs font-medium <?php echo $statusClass; ?>">
-                                        <?php echo ucfirst($order['status']); ?>
-                                    </span>
-                                    <span class="font-bold text-primary-500"><?php echo formatCurrency($order['total_amount']); ?></span>
-                                    <i class="fas fa-chevron-down text-gray-400"></i>
-                                </div>
-                            </button>
-                            <div id="order<?php echo $order['id']; ?>" class="hidden px-6 py-4 border-t border-gray-200">
-                                <!-- Order Details -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                                    <div>
-                                        <h6 class="font-bold text-gray-900 mb-2">Shipping Address</h6>
-                                        <p class="text-gray-600 text-sm"><?php echo e($order['name']); ?></p>
-                                        <p class="text-gray-600 text-sm"><?php echo e($order['address']); ?></p>
-                                        <p class="text-gray-600 text-sm"><?php echo e($order['city']); ?>, <?php echo e($order['state']); ?> - <?php echo e($order['pincode']); ?></p>
-                                        <p class="text-gray-600 text-sm">Mobile: <?php echo e($order['mobile']); ?></p>
-                                    </div>
-                                    <div>
-                                        <h6 class="font-bold text-gray-900 mb-2">Order Information</h6>
-                                        <p class="text-gray-600 text-sm">Payment Method: <?php echo ucfirst(e($order['payment_method'] ?? 'N/A')); ?></p>
-                                        <p class="text-gray-600 text-sm">Payment Status: 
-                                            <span class="inline-block px-2 py-1 rounded text-xs font-medium <?php echo ($order['payment_status'] ?? '') === 'paid' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'; ?>">
-                                                <?php echo ucfirst($order['payment_status'] ?? 'Pending'); ?>
-                                            </span>
-                                        </p>
-                                        <?php if ($order['coupon_code']): ?>
-                                        <p class="text-gray-600 text-sm mt-1">Coupon: <span class="inline-block bg-primary-100 text-primary-700 px-2 py-1 rounded text-xs font-medium"><?php echo e($order['coupon_code']); ?></span></p>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-                                
-                                <!-- Order Items -->
-                                <h6 class="font-bold text-gray-900 mb-3">Order Items</h6>
-                                <div class="overflow-x-auto">
-                                    <table class="w-full text-sm">
-                                        <thead class="bg-gray-50">
-                                            <tr>
-                                                <th class="px-4 py-2 text-left font-medium text-gray-700">Product</th>
-                                                <th class="px-4 py-2 text-center font-medium text-gray-700">Qty</th>
-                                                <th class="px-4 py-2 text-right font-medium text-gray-700">Price</th>
-                                                <th class="px-4 py-2 text-right font-medium text-gray-700">Total</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody class="divide-y divide-gray-200">
-                                            <?php foreach ($orderItems[$order['id']] as $item): ?>
-                                            <tr>
-                                                <td class="px-4 py-3">
-                                                    <div class="flex items-center">
-                                                        <img src="<?php echo getImageUrl($item['product_image'], 'products'); ?>" 
-                                                             class="w-10 h-10 rounded-lg mr-3 object-cover" alt="">
-                                                        <div>
-                                                            <span class="text-gray-900"><?php echo e($item['product_name']); ?></span>
-                                                            <?php if (!empty($item['weight'])): ?>
-                                                                <div class="text-blue-600 text-xs font-medium"><?php echo e($item['weight']); ?></div>
-                                                            <?php endif; ?>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td class="px-4 py-3 text-center"><?php echo $item['quantity']; ?></td>
-                                                <td class="px-4 py-3 text-right"><?php echo formatCurrency($item['price']); ?></td>
-                                                <td class="px-4 py-3 text-right font-medium"><?php echo formatCurrency($item['price'] * $item['quantity']); ?></td>
-                                            </tr>
-                                            <?php endforeach; ?>
-                                        </tbody>
-                                        <tfoot class="bg-gray-50 font-medium">
-                                            <tr>
-                                                <td colspan="3" class="px-4 py-2 text-right">Subtotal</td>
-                                                <td class="px-4 py-2 text-right"><?php echo formatCurrency($order['total_amount'] + $order['discount_amount']); ?></td>
-                                            </tr>
-                                            <?php if ($order['discount_amount'] > 0): ?>
-                                            <tr>
-                                                <td colspan="3" class="px-4 py-2 text-right">Discount</td>
-                                                <td class="px-4 py-2 text-right text-green-600">-<?php echo formatCurrency($order['discount_amount']); ?></td>
-                                            </tr>
-                                            <?php endif; ?>
-                                            <tr>
-                                                <td colspan="3" class="px-4 py-2 text-right font-bold text-gray-900">Total</td>
-                                                <td class="px-4 py-2 text-right font-bold text-primary-500"><?php echo formatCurrency($order['total_amount']); ?></td>
-                                            </tr>
-                                        </tfoot>
-                                    </table>
-                                </div>
-                            </div>
+                        <div class="text-center py-12">
+                            <i class="fas fa-box-open text-6xl text-gray-300 mb-4"></i>
+                            <h5 class="text-xl font-semibold text-gray-900 mb-2">No orders yet</h5>
+                            <p class="text-gray-500 mb-6">Start shopping to see your orders here!</p>
+                            <a href="<?php echo BASE_URL; ?>shop.php" class="inline-flex items-center bg-accent hover:bg-accent-800 text-white font-semibold py-3 px-6 rounded-full transition hover:shadow-sm">
+                                <i class="fas fa-shopping-bag mr-2"></i>Start Shopping
+                            </a>
                         </div>
-                        <?php endforeach; ?>
-                    </div>
+                    <?php else: ?>
+                        <div class="space-y-4" id="ordersAccordion">
+                            <?php foreach ($orders as $index => $order):
+                                $statusColors = [
+                                    'pending' => 'bg-yellow-100 text-yellow-700',
+                                    'processing' => 'bg-blue-100 text-blue-700',
+                                    'shipped' => 'bg-purple-100 text-purple-700',
+                                    'delivered' => 'bg-green-100 text-green-700',
+                                    'cancelled' => 'bg-red-100 text-red-700'
+                                ];
+                                $statusClass = $statusColors[$order['status']] ?? 'bg-gray-100 text-gray-700';
+                            ?>
+                                <div class="border border-gray-200 rounded-xl overflow-hidden">
+                                    <button
+                                        class="w-full px-4 md:px-6 py-4 flex flex-row md:items-center md:justify-between gap-4 bg-gray-50 hover:bg-gray-100 transition text-left"
+                                        onclick="document.getElementById('order<?php echo $order['id']; ?>').classList.toggle('hidden')">
+
+                                        <!-- Left -->
+                                        <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                                            <span class="font-bold text-gray-900 text-sm md:text-base">
+                                                Order #<?php echo $order['id']; ?>
+                                            </span>
+
+                                            <span class="text-gray-500 text-xs md:text-sm text-nowrap">
+                                                <?php echo date('M d, Y', strtotime($order['created_at'])); ?>
+                                            </span>
+                                        </div>
+
+                                        <!-- Right -->
+                                        <div class="flex flex-wrap items-center gap-3">
+
+                                            <span class="px-3 py-1 rounded-full text-xs font-medium <?php echo $statusClass; ?>">
+                                                <?php echo ucfirst($order['status']); ?>
+                                            </span>
+
+                                            <span class="font-bold text-primary-500 text-sm md:text-base">
+                                                <?php echo formatCurrency($order['total_amount']); ?>
+                                            </span>
+
+                                            <i class="fas fa-chevron-down text-gray-400 text-sm hidden md:block"></i>
+                                        </div>
+
+                                    </button>
+                                    <div id="order<?php echo $order['id']; ?>" class="hidden px-4 md:px-6 py-4 border-t border-gray-200">
+
+                                        <!-- Order Items -->
+                                        <h6 class="font-bold text-gray-900 mb-3">Order Items</h6>
+                                        <div class="overflow-x-auto">
+                                            <table class="w-full text-sm">
+                                                <thead class="bg-gray-50">
+                                                    <tr>
+                                                        <th class="px-4 py-2 text-left font-medium text-gray-700">Product</th>
+                                                        <th class="px-12 md:px-4 py-2 text-center font-medium text-gray-700">Qty</th>
+                                                        <th class="px-4 py-2 text-right font-medium text-gray-700">Price</th>
+                                                        <th class="px-4 py-2 text-right font-medium text-gray-700">Total</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody class="divide-y divide-gray-200">
+                                                    <?php foreach ($orderItems[$order['id']] as $item): ?>
+                                                        <tr>
+                                                            <td class="px-4 py-3">
+                                                                <div class="flex items-center">
+                                                                    <img src="<?php echo getImageUrl($item['product_image'], 'products'); ?>"
+                                                                        class="w-10 h-10 rounded-lg mr-3 object-cover" alt="">
+                                                                    <div>
+                                                                        <span class="text-gray-900 text-nowrap"><?php echo e($item['product_name']); ?></span>
+                                                                        <?php if (!empty($item['weight'])): ?>
+                                                                            <div class="text-blue-600 text-xs font-medium"><?php echo e($item['weight']); ?></div>
+                                                                        <?php endif; ?>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            <td class="px-12 md:px-4 py-3 text-center"><?php echo $item['quantity']; ?></td>
+                                                            <td class="px-4 py-3 text-right"><?php echo formatCurrency($item['price']); ?></td>
+                                                            <td class="px-4 py-3 text-right font-medium"><?php echo formatCurrency($item['price'] * $item['quantity']); ?></td>
+                                                        </tr>
+                                                    <?php endforeach; ?>
+                                                </tbody>
+                                                <tfoot class="bg-gray-50 font-medium">
+                                                    <tr>
+                                                        <td colspan="3" class="px-4 py-2 text-right">Subtotal</td>
+                                                        <td class="px-4 py-2 text-right"><?php echo formatCurrency($order['total_amount'] + $order['discount_amount']); ?></td>
+                                                    </tr>
+                                                    <?php if ($order['discount_amount'] > 0): ?>
+                                                        <tr>
+                                                            <td colspan="3" class="px-4 py-2 text-right">Discount</td>
+                                                            <td class="px-4 py-2 text-right text-green-600">-<?php echo formatCurrency($order['discount_amount']); ?></td>
+                                                        </tr>
+                                                    <?php endif; ?>
+                                                    <tr>
+                                                        <td colspan="3" class="px-4 py-2 text-right font-bold text-gray-900">Total</td>
+                                                        <td class="px-4 py-2 text-right font-bold text-primary-500"><?php echo formatCurrency($order['total_amount']); ?></td>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
+
+                                        <!-- Order Details -->
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                                            <div>
+                                                <h6 class="font-bold text-gray-900 mb-2">Shipping Address</h6>
+                                                <p class="text-gray-600 text-xs"><?php echo e($order['name']); ?></p>
+                                                <p class="text-gray-600 text-xs"><?php echo e($order['address']); ?></p>
+                                                <p class="text-gray-600 text-xs"><?php echo e($order['city']); ?>, <?php echo e($order['state']); ?> - <?php echo e($order['pincode']); ?></p>
+                                                <p class="text-gray-600 text-xs">Mobile: <?php echo e($order['mobile']); ?></p>
+                                            </div>
+                                            <div>
+                                                <h6 class="font-bold text-gray-900 mb-2">Payment Details</h6>
+                                                <?php
+                                                $paymentMethod = $order['payment_method'] ?? '';
+                                                $paymentStatus = $order['payment_status'] ?? 'pending';
+                                                $initialPaymentStatus = $order['initial_payment_status'] ?? 'pending';
+                                                $paymentStatusClass = $paymentStatus === 'paid'
+                                                    ? 'bg-green-100 text-green-700'
+                                                    : ($paymentStatus === 'failed' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700');
+                                                $initialStatusClass = $initialPaymentStatus === 'paid'
+                                                    ? 'bg-green-100 text-green-700'
+                                                    : ($initialPaymentStatus === 'failed' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700');
+                                                ?>
+                                                <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm">
+                                                    <div class="space-y-2">
+                                                        <div class="flex justify-between gap-4">
+                                                            <span class="text-gray-500">Method</span>
+                                                            <span class="font-medium text-gray-900 text-xs md:text-sm"><?php echo $paymentMethod === 'cod' ? 'Cash on Delivery (COD)' : 'Online Payment'; ?></span>
+                                                        </div>
+                                                        <div class="flex justify-between gap-4">
+                                                            <span class="text-gray-500">Payment Status</span>
+                                                            <span class="inline-block px-2 py-1 rounded text-xs font-medium <?php echo $paymentStatusClass; ?>">
+                                                                <?php echo ucfirst(e($paymentStatus)); ?>
+                                                            </span>
+                                                        </div>
+
+                                                        <?php if ($paymentMethod === 'cod'): ?>
+                                                            <div class="flex justify-between gap-4">
+                                                                <span class="text-gray-500">Order Total</span>
+                                                                <span class="font-medium text-gray-900"><?php echo formatCurrency($order['total_amount']); ?></span>
+                                                            </div>
+                                                            <div class="flex justify-between gap-4">
+                                                                <span class="text-gray-500">Initial Paid</span>
+                                                                <span class="font-medium text-green-600"><?php echo formatCurrency($order['initial_payment_amount']); ?></span>
+                                                            </div>
+                                                            <div class="flex justify-between gap-4">
+                                                                <span class="text-gray-500">Pay on Delivery</span>
+                                                                <span class="font-medium text-orange-600"><?php echo formatCurrency($order['remaining_payment_amount']); ?></span>
+                                                            </div>
+                                                            <div class="flex justify-between gap-4">
+                                                                <span class="text-gray-500">Initial Status</span>
+                                                                <span class="inline-block px-2 py-1 rounded text-xs font-medium <?php echo $initialStatusClass; ?>">
+                                                                    <?php echo ucfirst(e($initialPaymentStatus)); ?>
+                                                                </span>
+                                                            </div>
+                                                        <?php else: ?>
+                                                            <div class="flex justify-between gap-4">
+                                                                <span class="text-gray-500">Paid Amount</span>
+                                                                <span class="font-medium text-gray-900"><?php echo formatCurrency($order['total_amount']); ?></span>
+                                                            </div>
+                                                        <?php endif; ?>
+
+                                                        <?php if (!empty($order['razorpay_payment_id'])): ?>
+                                                            <div class="pt-2 border-t border-gray-200">
+                                                                <span class="block text-gray-500">Payment ID</span>
+                                                                <span class="break-all text-xs font-medium text-gray-700"><?php echo e($order['razorpay_payment_id']); ?></span>
+                                                            </div>
+                                                        <?php endif; ?>
+
+                                                        <?php if (!empty($order['razorpay_order_id'])): ?>
+                                                            <div>
+                                                                <span class="block text-gray-500">Order ID</span>
+                                                                <span class="break-all text-xs font-medium text-gray-700"><?php echo e($order['razorpay_order_id']); ?></span>
+                                                            </div>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </div>
+
+                                                <?php if ($order['coupon_code']): ?>
+                                                    <p class="text-gray-600 text-sm mt-3">Coupon: <span class="inline-block bg-primary-100 text-primary-700 px-2 py-1 rounded text-xs font-medium"><?php echo e($order['coupon_code']); ?></span></p>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
                     <?php endif; ?>
                 </div>
             </div>

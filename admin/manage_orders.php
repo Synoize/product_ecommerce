@@ -124,6 +124,10 @@ $orders = $stmt->fetchAll();
                                     'cancelled' => 'bg-red-100 text-red-700'
                                 ];
                                 $statusClass = $statusColors[$order['status']] ?? 'bg-gray-100 text-gray-700';
+                                $paymentStatus = $order['payment_status'] ?? 'pending';
+                                $paymentStatusClass = $paymentStatus === 'paid'
+                                    ? 'bg-green-100 text-green-700'
+                                    : ($paymentStatus === 'failed' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700');
                             ?>
                             <tr>
                                 <td class="px-4 py-3 text-sm font-medium">#<?php echo $order['id']; ?></td>
@@ -138,11 +142,23 @@ $orders = $stmt->fetchAll();
                                     </span>
                                 </td>
                                 <td class="px-4 py-3">
-                                    <span class="inline-block px-2 py-1 rounded text-xs font-medium <?php echo ($order['payment_status'] ?? '') === 'paid' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'; ?>">
-                                        <?php echo ucfirst($order['payment_status'] ?? 'Pending'); ?>
+                                    <span class="inline-block px-2 py-1 rounded text-xs font-medium <?php echo $paymentStatusClass; ?>">
+                                        <?php echo ucfirst(e($paymentStatus)); ?>
                                     </span>
-                                    <?php if ($order['payment_method']): ?>
-                                    <div class="text-xs text-gray-500 mt-1"><?php echo ucfirst($order['payment_method']); ?></div>
+                                    <div class="text-xs text-gray-500 mt-1">
+                                        <?php echo ($order['payment_method'] ?? '') === 'cod' ? 'COD' : 'Online'; ?>
+                                    </div>
+                                    <?php if (($order['payment_method'] ?? '') === 'cod'): ?>
+                                        <div class="text-xs text-gray-500 mt-1">
+                                            Paid: <span class="text-green-600 font-medium"><?php echo formatCurrency($order['initial_payment_amount']); ?></span>
+                                        </div>
+                                        <div class="text-xs text-gray-500">
+                                            Due: <span class="text-orange-600 font-medium"><?php echo formatCurrency($order['remaining_payment_amount']); ?></span>
+                                        </div>
+                                    <?php elseif (!empty($order['razorpay_payment_id'])): ?>
+                                        <div class="text-xs text-gray-400 mt-1 max-w-36 truncate" title="<?php echo e($order['razorpay_payment_id']); ?>">
+                                            <?php echo e($order['razorpay_payment_id']); ?>
+                                        </div>
                                     <?php endif; ?>
                                 </td>
                                 <td class="px-4 py-3 text-sm text-gray-500"><?php echo date('M d, Y H:i', strtotime($order['created_at'])); ?></td>

@@ -6,7 +6,7 @@
  */
 
 $pageTitle = 'Products';
-require_once 'includes/header.php';
+require_once __DIR__ . '/includes/db_connect.php';
 
 // Get product ID
 $productId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
@@ -98,6 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['review_action'])) {
                 setFlash('Thank you for your review!', 'success');
             }
         } catch (PDOException $e) {
+            error_log('Review Save Error: ' . $e->getMessage());
             setFlash('Unable to save your review right now.', 'danger');
         }
     } else {
@@ -210,6 +211,8 @@ $selectedPrice = $selectedWeight ? (float)$selectedWeight['price'] : (float)$pro
 $selectedStock = $selectedWeight ? (int)$selectedWeight['stock'] : (int)$product['stock'];
 $selectedWeightLabel = $selectedWeight ? $selectedWeight['weight'] : 'Default';
 $productOriginalPrice = (float)($product['original_price'] ?? 0);
+
+require_once __DIR__ . '/includes/header.php';
 ?>
 
 <!-- Breadcrumb -->

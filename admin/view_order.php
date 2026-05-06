@@ -186,19 +186,72 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
                         <p class="text-sm mb-4"><span class="font-medium">Order ID:</span> #<?php echo $order['id']; ?></p>
                         
                         <div class="border-t border-gray-200 pt-4 mb-4">
-                            <h6 class="font-bold text-gray-900 mb-2">Payment Information</h6>
-                            <p class="text-sm mb-1"><span class="font-medium">Method:</span> <?php echo ucfirst(e($order['payment_method'] ?? 'N/A')); ?></p>
-                            <p class="text-sm mb-1"><span class="font-medium">Status:</span> 
-                                <span class="inline-block px-2 py-1 rounded text-xs font-medium <?php echo ($order['payment_status'] ?? '') === 'paid' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'; ?>">
-                                    <?php echo ucfirst($order['payment_status'] ?? 'Pending'); ?>
-                                </span>
-                            </p>
-                            <?php if ($order['razorpay_payment_id']): ?>
-                            <p class="text-sm mb-1"><span class="font-medium">Payment ID:</span> <span class="text-gray-500 text-xs"><?php echo e($order['razorpay_payment_id']); ?></span></p>
-                            <?php endif; ?>
-                            <?php if ($order['razorpay_order_id']): ?>
-                            <p class="text-sm"><span class="font-medium">Order ID:</span> <span class="text-gray-500 text-xs"><?php echo e($order['razorpay_order_id']); ?></span></p>
-                            <?php endif; ?>
+                            <h6 class="font-bold text-gray-900 mb-3">Payment Information</h6>
+                            <?php
+                                $paymentMethod = $order['payment_method'] ?? '';
+                                $paymentStatus = $order['payment_status'] ?? 'pending';
+                                $initialPaymentStatus = $order['initial_payment_status'] ?? 'pending';
+                                $paymentStatusClass = $paymentStatus === 'paid'
+                                    ? 'bg-green-100 text-green-700'
+                                    : ($paymentStatus === 'failed' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700');
+                                $initialStatusClass = $initialPaymentStatus === 'paid'
+                                    ? 'bg-green-100 text-green-700'
+                                    : ($initialPaymentStatus === 'failed' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700');
+                            ?>
+                            <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm">
+                                <div class="space-y-2">
+                                    <div class="flex justify-between gap-4">
+                                        <span class="text-gray-500">Method</span>
+                                        <span class="font-medium text-gray-900"><?php echo $paymentMethod === 'cod' ? 'Cash on Delivery (COD)' : 'Online Payment'; ?></span>
+                                    </div>
+                                    <div class="flex justify-between gap-4">
+                                        <span class="text-gray-500">Payment Status</span>
+                                        <span class="inline-block px-2 py-1 rounded text-xs font-medium <?php echo $paymentStatusClass; ?>">
+                                            <?php echo ucfirst(e($paymentStatus)); ?>
+                                        </span>
+                                    </div>
+
+                                    <?php if ($paymentMethod === 'cod'): ?>
+                                        <div class="flex justify-between gap-4">
+                                            <span class="text-gray-500">Order Total</span>
+                                            <span class="font-medium text-gray-900"><?php echo formatCurrency($order['total_amount']); ?></span>
+                                        </div>
+                                        <div class="flex justify-between gap-4">
+                                            <span class="text-gray-500">Initial Paid</span>
+                                            <span class="font-medium text-green-600"><?php echo formatCurrency($order['initial_payment_amount']); ?></span>
+                                        </div>
+                                        <div class="flex justify-between gap-4">
+                                            <span class="text-gray-500">Collect on Delivery</span>
+                                            <span class="font-medium text-orange-600"><?php echo formatCurrency($order['remaining_payment_amount']); ?></span>
+                                        </div>
+                                        <div class="flex justify-between gap-4">
+                                            <span class="text-gray-500">Initial Status</span>
+                                            <span class="inline-block px-2 py-1 rounded text-xs font-medium <?php echo $initialStatusClass; ?>">
+                                                <?php echo ucfirst(e($initialPaymentStatus)); ?>
+                                            </span>
+                                        </div>
+                                    <?php else: ?>
+                                        <div class="flex justify-between gap-4">
+                                            <span class="text-gray-500">Paid Amount</span>
+                                            <span class="font-medium text-gray-900"><?php echo formatCurrency($order['total_amount']); ?></span>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <?php if (!empty($order['razorpay_payment_id'])): ?>
+                                        <div class="pt-2 border-t border-gray-200">
+                                            <span class="block text-gray-500">Razorpay Payment ID</span>
+                                            <span class="break-all text-xs font-medium text-gray-700"><?php echo e($order['razorpay_payment_id']); ?></span>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <?php if (!empty($order['razorpay_order_id'])): ?>
+                                        <div>
+                                            <span class="block text-gray-500">Razorpay Order ID</span>
+                                            <span class="break-all text-xs font-medium text-gray-700"><?php echo e($order['razorpay_order_id']); ?></span>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
                         </div>
                         
                         <?php if ($order['coupon_code']): ?>

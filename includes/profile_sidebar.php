@@ -6,8 +6,8 @@ $currentPage = basename($_SERVER['PHP_SELF']);
     <div class="bg-white md:border rounded-lg md:shadow-sm md:p-6 sticky top-24">
         
         <div class="text-center mb-6">
-            <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($_SESSION['user_name']); ?>&background=f84183&color=fff&size=128"
-                class="w-24 h-24 rounded-full mx-auto mb-3" alt="Profile">
+            <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($_SESSION['user_name']); ?>&background=66bb6a&color=fff&size=128"
+                class="w-20 h-20 rounded-full mx-auto mb-3" alt="Profile">
 
             <h5 class="font-bold text-gray-900 mb-1">
                 <?php echo e($_SESSION['user_name']); ?>

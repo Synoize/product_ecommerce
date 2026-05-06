@@ -325,9 +325,9 @@ try {
                     </form>
 
                     <!-- Wishlist -->
-                    <!-- <?php if (isLoggedIn()): ?>
+                    <?php if (isLoggedIn()): ?>
                         <a href="<?php echo BASE_URL; ?>user/wishlist.php"
-                            class="relative text-red-500 hover:text-red-400 transition">
+                            class="relative text-red-500 hover:text-red-400 transition hidden md:block">
 
                             <i class="fas fa-heart text-xl"></i>
 
@@ -346,7 +346,7 @@ try {
                                 </span>
                             <?php endif; ?>
                         </a>
-                    <?php endif; ?> -->
+                    <?php endif; ?>
 
                     <!-- Cart -->
                     <a href="<?php echo BASE_URL; ?>cart.php"
@@ -377,7 +377,7 @@ try {
 
                                 <img
                                     src="https://ui-avatars.com/api/?name=<?php echo urlencode($_SESSION['user_name'] ?? 'User'); ?>&background=66bb6a&color=fff"
-                                    class="w-9 h-9 rounded-full object-cover border border-gray-200">
+                                    class="w-8 h-8 rounded-full object-cover border border-gray-200">
 
                                 <span class="hidden sm:block text-sm font-medium">
                                     <?php echo e($_SESSION['user_name'] ?? 'User'); ?>
