@@ -141,32 +141,78 @@ try {
             </div>
 
             <script>
-                document.addEventListener("DOMContentLoaded", () => {
-                    const images = document.querySelectorAll('.pkg');
-                    let current = 0;
+            document.addEventListener("DOMContentLoaded", () => {
 
-                    function showNextImage() {
-                        images.forEach(img => {
-                            img.classList.remove('animate-pop', 'animate-float');
-                            img.classList.add('opacity-0', 'scale-75');
-                        });
+    const images = document.querySelectorAll(".pkg");
 
-                        const img = images[current];
-                        img.classList.remove('opacity-0', 'scale-75');
-                        img.classList.add('animate-pop');
+    const animations = [
+        "animate-slide-left",
+        "animate-slide-right",
+        "animate-slide-top",
+        "animate-slide-bottom",
+        "animate-pop",
+    ];
 
-                        setTimeout(() => {
-                            img.classList.remove('animate-pop');
-                            img.classList.add('animate-float');
-                        }, 500);
+    let current = 0;
 
-                        current = (current + 1) % images.length;
-                    }
+    function showNextImage() {
 
-                    showNextImage();
-                    setInterval(showNextImage, 5000); // better UX than 10s
-                });
-            </script>
+        // Hide current image smoothly
+        images.forEach((img) => {
+
+            img.classList.remove(
+                "opacity-100",
+                "scale-100",
+                "animate-pop",
+                "animate-float",
+                "animate-slide-left",
+                "animate-slide-right",
+                "animate-slide-top",
+                "animate-slide-bottom"
+            );
+
+            img.classList.add(
+                "opacity-0",
+                "scale-95",
+                "transition-all",
+                "duration-700",
+                "ease-in-out"
+            );
+        });
+
+        // Active image
+        const activeImage = images[current];
+
+        const randomAnimation =
+            animations[Math.floor(Math.random() * animations.length)];
+
+        activeImage.classList.remove(
+            "opacity-0",
+            "scale-95"
+        );
+
+        activeImage.classList.add(
+            "opacity-100",
+            "scale-100",
+            randomAnimation,
+            "transition-all",
+            "duration-700",
+            "ease-in-out"
+        );
+
+        // Floating effect after entrance
+        setTimeout(() => {
+            activeImage.classList.add("animate-float");
+        }, 700);
+
+        current = (current + 1) % images.length;
+    }
+
+    showNextImage();
+
+    setInterval(showNextImage, 4500);
+});    
+                </script>
 
         </div>
     </div>
@@ -238,7 +284,7 @@ try {
 <section>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-end mb-12">
-            <div class="scroll-animate-top md:scroll-animate-left mx-auto md:mx-0 text-center md:text-left">
+            <div class="scroll-animate-top mx-auto md:mx-0 text-center md:text-left">
                 <h2 class="text-3xl md:text-5xl font-luckiest text-primary-600 mb-2">Featured <span class="text-accent" style="-webkit-text-stroke: 1px black;">Products</span></h2>
                 <p class="text-gray-500 text-base">Handpicked items just for you</p>
             </div>
@@ -534,7 +580,7 @@ try {
                             <?php echo e($product['name']); ?>
                         </h3>
 
-                         <!-- WEIGHT -->
+                        <!-- WEIGHT -->
                         <?php
                         $displayWeight = '';
                         if (!empty($product['weight'])) {
@@ -705,7 +751,7 @@ try {
         <div class="space-y-10 text-center md:text-right scroll-animate-left">
 
             <div class="flex flex-col items-center md:items-end">
-                <img src="<?php echo IMAGES_URL; ?>/chili.png"
+                <img src="<?php echo IMAGES_URL; ?>chili.png"
                     class="w-20 h-20 object-contain animate-float">
                 <h3 class="font-semibold text-gray-800">Authentic Spices</h3>
                 <p class="text-sm text-gray-600">
@@ -714,7 +760,7 @@ try {
             </div>
 
             <div class="flex flex-col items-center md:items-end">
-                <img src="<?php echo IMAGES_URL; ?>/snacks.png"
+                <img src="<?php echo IMAGES_URL; ?>snacks.png"
                     class="w-20 h-20 object-contain animate-float">
                 <h3 class="font-semibold text-gray-800">Crispy Snacks</h3>
                 <p class="text-sm text-gray-600">
@@ -723,7 +769,7 @@ try {
             </div>
 
             <div class="flex flex-col items-center md:items-end">
-                <img src="<?php echo IMAGES_URL; ?>/spices.png"
+                <img src="<?php echo IMAGES_URL; ?>spices.png"
                     class="w-20 h-20 object-contain animate-float">
                 <h3 class="font-semibold text-gray-800">Premium Quality</h3>
                 <p class="text-sm text-gray-600">
@@ -734,12 +780,83 @@ try {
         </div>
 
         <!-- CENTER IMAGE -->
-        <div class="flex justify-center relative">
-            <img
-                src="<?php echo IMAGES_URL; ?>/makhana_bowl.png"
-                alt="Snacks and Spices"
-                class="w-60 md:w-80 drop-shadow-xl rounded-2xl animate-float " />
+        <div class="relative flex justify-center items-center h-[420px] overflow-hidden">
+
+            <img src="<?php echo IMAGES_URL; ?>chili.png"
+                class="authentic absolute w-auto max-h-full object-contain opacity-0">
+
+            <img src="<?php echo IMAGES_URL; ?>snacks.png"
+                class="authentic absolute w-auto max-h-full object-contain opacity-0">
+
+            <img src="<?php echo IMAGES_URL; ?>spices.png"
+                class="authentic absolute w-auto max-h-full object-contain opacity-0">
+
+            <img src="<?php echo IMAGES_URL; ?>variety_snacks.png"
+                class="authentic absolute w-auto max-h-full object-contain opacity-0">
+
+            <img src="<?php echo IMAGES_URL; ?>natural_ingredients.png"
+                class="authentic absolute w-auto max-h-full object-contain opacity-0">
+
+            <img src="<?php echo IMAGES_URL; ?>packaging.png"
+                class="authentic absolute w-auto max-h-full object-contain opacity-0">
         </div>
+
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+
+                const images = document.querySelectorAll(".authentic");
+
+                const animations = [
+                    "animate-slide-left",
+                    "animate-slide-right",
+                    "animate-slide-top",
+                    "animate-slide-bottom",
+                    "animate-pop",
+                ];
+
+                let current = 0;
+
+                function showNextImage() {
+
+                    images.forEach((img) => {
+
+                        img.classList.remove(
+                            "opacity-100",
+                            "animate-pop",
+                            "animate-float",
+                            "animate-slide-left",
+                            "animate-slide-right",
+                            "animate-slide-top",
+                            "animate-slide-bottom"
+                        );
+
+                        img.classList.add("opacity-0");
+                    });
+
+                    const activeImage = images[current];
+
+                    const randomAnimation =
+                        animations[Math.floor(Math.random() * animations.length)];
+
+                    activeImage.classList.remove("opacity-0");
+
+                    activeImage.classList.add(
+                        "opacity-100",
+                        randomAnimation
+                    );
+
+                    setTimeout(() => {
+                        activeImage.classList.add("animate-float");
+                    }, 900);
+
+                    current = (current + 1) % images.length;
+                }
+
+                showNextImage();
+
+                setInterval(showNextImage, 4000);
+            });
+        </script>
 
         <!-- RIGHT FEATURES -->
         <div class="space-y-10 text-center md:text-left scroll-animate-right">

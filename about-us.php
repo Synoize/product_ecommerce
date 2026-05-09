@@ -225,7 +225,7 @@ require_once 'includes/header.php';
         <div class="space-y-10 text-center md:text-right scroll-animate-left">
 
             <div class="flex flex-col items-center md:items-end">
-                <img src="<?php echo IMAGES_URL; ?>/chili.png"
+                <img src="<?php echo IMAGES_URL; ?>chili.png"
                     class="w-20 h-20 object-contain animate-float">
                 <h3 class="font-semibold text-gray-800">Authentic Spices</h3>
                 <p class="text-sm text-gray-600">
@@ -234,7 +234,7 @@ require_once 'includes/header.php';
             </div>
 
             <div class="flex flex-col items-center md:items-end">
-                <img src="<?php echo IMAGES_URL; ?>/snacks.png"
+                <img src="<?php echo IMAGES_URL; ?>snacks.png"
                     class="w-20 h-20 object-contain animate-float">
                 <h3 class="font-semibold text-gray-800">Crispy Snacks</h3>
                 <p class="text-sm text-gray-600">
@@ -243,7 +243,7 @@ require_once 'includes/header.php';
             </div>
 
             <div class="flex flex-col items-center md:items-end">
-                <img src="<?php echo IMAGES_URL; ?>/spices.png"
+                <img src="<?php echo IMAGES_URL; ?>spices.png"
                     class="w-20 h-20 object-contain animate-float">
                 <h3 class="font-semibold text-gray-800">Premium Quality</h3>
                 <p class="text-sm text-gray-600">
@@ -254,12 +254,83 @@ require_once 'includes/header.php';
         </div>
 
         <!-- CENTER IMAGE -->
-        <div class="flex justify-center relative">
-            <img
-                src="<?php echo IMAGES_URL; ?>/makhana_bowl.png"
-                alt="Snacks and Spices"
-                class="w-60 md:w-80 drop-shadow-xl rounded-2xl animate-float " />
+        <div class="relative flex justify-center items-center h-[420px] overflow-hidden">
+
+            <img src="<?php echo IMAGES_URL; ?>chili.png"
+                class="authentic absolute w-auto max-h-full object-contain opacity-0">
+
+            <img src="<?php echo IMAGES_URL; ?>snacks.png"
+                class="authentic absolute w-auto max-h-full object-contain opacity-0">
+
+            <img src="<?php echo IMAGES_URL; ?>spices.png"
+                class="authentic absolute w-auto max-h-full object-contain opacity-0">
+
+            <img src="<?php echo IMAGES_URL; ?>variety_snacks.png"
+                class="authentic absolute w-auto max-h-full object-contain opacity-0">
+
+            <img src="<?php echo IMAGES_URL; ?>natural_ingredients.png"
+                class="authentic absolute w-auto max-h-full object-contain opacity-0">
+
+            <img src="<?php echo IMAGES_URL; ?>packaging.png"
+                class="authentic absolute w-auto max-h-full object-contain opacity-0">
         </div>
+
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+
+                const images = document.querySelectorAll(".authentic");
+
+                const animations = [
+                    "animate-slide-left",
+                    "animate-slide-right",
+                    "animate-slide-top",
+                    "animate-slide-bottom",
+                    "animate-pop",
+                ];
+
+                let current = 0;
+
+                function showNextImage() {
+
+                    images.forEach((img) => {
+
+                        img.classList.remove(
+                            "opacity-100",
+                            "animate-pop",
+                            "animate-float",
+                            "animate-slide-left",
+                            "animate-slide-right",
+                            "animate-slide-top",
+                            "animate-slide-bottom"
+                        );
+
+                        img.classList.add("opacity-0");
+                    });
+
+                    const activeImage = images[current];
+
+                    const randomAnimation =
+                        animations[Math.floor(Math.random() * animations.length)];
+
+                    activeImage.classList.remove("opacity-0");
+
+                    activeImage.classList.add(
+                        "opacity-100",
+                        randomAnimation
+                    );
+
+                    setTimeout(() => {
+                        activeImage.classList.add("animate-float");
+                    }, 900);
+
+                    current = (current + 1) % images.length;
+                }
+
+                showNextImage();
+
+                setInterval(showNextImage, 4000);
+            });
+        </script>
 
         <!-- RIGHT FEATURES -->
         <div class="space-y-10 text-center md:text-left scroll-animate-right">

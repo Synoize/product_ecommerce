@@ -257,7 +257,7 @@ $total = $subtotal - $discount;
                                     <!-- Image -->
                                     <div class="w-20 h-20 flex-shrink-0">
                                         <?php $imageUrl = getImageUrl($item['image'], 'products'); ?>
-                                        <a href="<?php echo BASE_URL; ?>product.php?id=<?php echo $item['id']; ?>" class="block hover:opacity-75 transition">
+                                        <a href="<?php echo BASE_URL; ?>product.php?id=<?php echo $item['id']; ?>" class="block hover:opacity-75 transition h-full bg-gray-50">
                                             <img src="<?php echo $imageUrl; ?>" class="w-full h-full object-cover rounded-lg">
                                         </a>
                                     </div>
