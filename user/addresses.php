@@ -25,10 +25,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $state = trim($_POST['state'] ?? '');
             $pincode = trim($_POST['pincode'] ?? '');
             $isDefault = isset($_POST['is_default']) ? 1 : 0;
+
+            $mobile = preg_replace('/\\s+/', '', $mobile);
             
             // Validation
             if (empty($name)) $errors[] = 'Name is required';
-            if (empty($mobile) || !preg_match('/^[0-9]{10}$/', $mobile)) $errors[] = 'Valid 10-digit mobile number is required';
+            if (empty($mobile) || !preg_match('/^\\+[1-9]\\d{7,14}$/', $mobile)) $errors[] = 'Valid mobile number with country code is required (e.g. +919876543210)';
             if (empty($address)) $errors[] = 'Address is required';
             if (empty($city)) $errors[] = 'City is required';
             if (empty($state)) $errors[] = 'State is required';
@@ -160,7 +162,7 @@ require_once __DIR__ . '/../includes/header.php';
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
-                                <input type="tel" name="mobile" required pattern="[0-9]{10}" maxlength="10"
+                                <input type="tel" name="mobile" required pattern="\+[0-9]{8,15}" maxlength="16"
                                        value="<?php echo $editAddress ? e($editAddress['mobile']) : ''; ?>"
                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:border-accent transition">
                             </div>

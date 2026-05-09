@@ -127,7 +127,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Please select a saved delivery address';
     } else {
         if (empty($name)) $errors[] = 'Name is required';
-        if (empty($mobile) || !preg_match('/^[0-9]{10}$/', $mobile)) $errors[] = 'Valid 10-digit mobile number is required';
+        $mobile = preg_replace('/\\s+/', '', $mobile);
+        if (empty($mobile) || !preg_match('/^\\+[1-9]\\d{7,14}$/', $mobile)) $errors[] = 'Valid mobile number with country code is required (e.g. +919876543210)';
         if (empty($address)) $errors[] = 'Address is required';
         if (empty($city)) $errors[] = 'City is required';
         if (empty($state)) $errors[] = 'State is required';

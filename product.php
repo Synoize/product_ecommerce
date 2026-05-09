@@ -292,6 +292,22 @@ require_once __DIR__ . '/includes/header.php';
                         <?php endif; ?>
                     </div>
 
+                    <?php
+                    $displayWeight = '';
+                    if (!empty($productWeights) && !empty($selectedWeightLabel) && $selectedWeightLabel !== 'Default') {
+                        $displayWeight = (string)$selectedWeightLabel;
+                    } elseif (!empty($product['weight'])) {
+                        $displayWeight = (string)$product['weight'];
+                    }
+                    ?>
+                    <?php if ($displayWeight !== ''): ?>
+                        <div class="mb-6">
+                            <span id="displayProductWeight" class="inline-flex items-center bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium">
+                                Net Weight: <?php echo e($displayWeight); ?>
+                            </span>
+                        </div>
+                    <?php endif; ?>
+
                     <!-- Description -->
                     <p class="text-gray-600 mb-6 text-sm leading-relaxed"><?php echo nl2br(e($product['description'])); ?></p>
 
@@ -765,7 +781,7 @@ require_once __DIR__ . '/includes/header.php';
                             </div>
 
                             <!-- CONTENT -->
-                            <div class="p-3 md:p-4 flex flex-col justify-between h-[160px]">
+                            <div class="p-3 md:p-4 flex flex-col justify-between h-[160px] md:h-[180px]">
 
                                 <!-- CATEGORY -->
                                 <!-- <small class="text-gray-400 text-xs uppercase tracking-wide">
@@ -777,17 +793,25 @@ require_once __DIR__ . '/includes/header.php';
                                     <?php echo e($product['name']); ?>
                                 </h3>
 
-                                <!-- DESCRIPTION -->
-                                <!-- <p class="text-gray-500 text-xs sm:text-sm line-clamp-2">
-                            <?php echo substr(e($product['description']), 0, 60) . '...'; ?>
-                        </p> -->
+                                <!-- WEIGHT -->
+                                <?php
+                                $displayWeight = '';
+                                if (!empty($product['weight'])) {
+                                    $displayWeight = trim((string)$product['weight']);
+                                }
+                                ?>
+                                <?php if ($displayWeight !== ''): ?>
+                                    <p class="text-gray-500 text-xs mt-1">
+                                        <i class="fas fa-weight-hanging mr-1 text-accent"></i><?php echo e($displayWeight); ?>
+                                    </p>
+                                <?php endif; ?>
 
 
                                 <!-- PRICE -->
                                 <div class="w-full flex justify-between items-center">
 
                                     <!-- LEFT: PRICE -->
-                                    <div class="flex items-baseline flex-wrap md:gap-2">
+                                    <div class="flex items-baseline flex-wrap space-x-1">
 
                                         <span class="text-primary-600 font-bold text-base sm:text-lg md:text-xl">
                                             <?php echo formatCurrency($product['price']); ?>

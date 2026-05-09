@@ -37,10 +37,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $newPassword = isset($_POST['new_password']) ? $_POST['new_password'] : '';
     $confirmNewPassword = isset($_POST['confirm_new_password']) ? $_POST['confirm_new_password'] : '';
 
+    $mobile = preg_replace('/\\s+/', '', $mobile);
+
     // Validation
     if (empty($name)) $errors[] = 'Name is required';
     if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Valid email is required';
-    if (empty($mobile) || !preg_match('/^[0-9]{10}$/', $mobile)) $errors[] = 'Valid 10-digit mobile number is required';
+    if (empty($mobile) || !preg_match('/^\\+[1-9]\\d{7,14}$/', $mobile)) $errors[] = 'Valid mobile number with country code is required (e.g. +919876543210)';
 
     // Check email uniqueness (excluding current user)
     if (empty($errors)) {
@@ -139,7 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Mobile Number *</label>
                                     <input type="tel" name="mobile" required
-                                        pattern="[0-9]{10}" maxlength="10"
+                                        pattern="\+[0-9]{8,15}" maxlength="16"
                                         value="<?php echo e($_POST['mobile'] ?? $user['mobile'] ?? ''); ?>"
                                         class="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:border-accent transition">
                                 </div>
@@ -211,7 +213,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <script>
     // Mobile and pincode validation
     document.querySelector('input[name="mobile"]').addEventListener('input', function(e) {
-        this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);
+        this.value = this.value.replace(/\s+/g, '');
+        if (this.value.length > 0 && this.value[0] !== '+') {
+            this.value = '+' + this.value.replace(/[^0-9]/g, '');
+        } else {
+            this.value = '+' + this.value.substring(1).replace(/[^0-9]/g, '');
+        }
+        this.value = this.value.slice(0, 16);
     });
 
     document.querySelector('input[name="pincode"]').addEventListener('input', function(e) {

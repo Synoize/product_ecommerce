@@ -69,6 +69,16 @@ try {
                                 Help Center
                             </a>
                         </li>
+                        <li>
+                            <a href="<?php echo BASE_URL; ?>terms_of_service.php" class="text-gray-700 hover:text-gray-500 text-sm transition">
+                                Terms of Service
+                            </a>
+                        </li>
+                        <li>
+                            <a href="<?php echo BASE_URL; ?>privacy_policy.php" class="text-gray-700 hover:text-gray-500 text-sm transition">
+                                Privacy Policy
+                            </a>
+                        </li>
                         <li><a href="tel:+916235559500" class="text-gray-700 hover:text-gray-500 text-sm transition">
                                 Call Support
                             </a></li>

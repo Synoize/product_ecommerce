@@ -29,6 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $price = isset($_POST['price']) ? (float)$_POST['price'] : 0;
     $originalPrice = isset($_POST['original_price']) ? (float)$_POST['original_price'] : 0;
     $stock = isset($_POST['stock']) ? (int)$_POST['stock'] : 0;
+    $weight = isset($_POST['weight']) ? trim($_POST['weight']) : '';
     
     // Validation
     if (empty($name)) $errors[] = 'Product name is required';
@@ -129,9 +130,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $galleryJson = !empty($galleryImages) ? json_encode($galleryImages) : null;
             
-            $stmt = $pdo->prepare("INSERT INTO products (name, description, ingredients, shipping_return, legal_mandatories, category_id, price, original_price, stock, image, gallery, status, created_at) 
-                                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())");
-            $stmt->execute([$name, $description, $ingredients, $shippingReturn, $legalMandatories, $categoryId, $price, $originalPrice, $stock, $imageName, $galleryJson]);
+            $stmt = $pdo->prepare("INSERT INTO products (name, description, ingredients, shipping_return, legal_mandatories, category_id, price, original_price, stock, weight, image, gallery, status, created_at) 
+                                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())");
+            $stmt->execute([$name, $description, $ingredients, $shippingReturn, $legalMandatories, $categoryId, $price, $originalPrice, $stock, $weight, $imageName, $galleryJson]);
             
             $productId = $pdo->lastInsertId();
             
@@ -239,6 +240,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <input type="number" name="stock" min="0" required
                                    value="<?php echo isset($_POST['stock']) ? e($_POST['stock']) : ''; ?>"
                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Default Weight</label>
+                            <input type="text" name="weight" 
+                                   value="<?php echo isset($_POST['weight']) ? e($_POST['weight']) : ''; ?>"
+                                   placeholder="e.g., 200g, 500ml, 1 piece"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition">
+                            <p class="text-xs text-gray-500 mt-1">Default weight shown when no weight variants are added</p>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Main Product Image</label>

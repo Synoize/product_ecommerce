@@ -243,3 +243,10 @@ INSERT INTO `reviews` (`product_id`, `user_id`, `rating`, `comment`, `created_at
 INSERT INTO `contact_messages` (`name`, `email`, `phone`, `message`, `created_at`) VALUES
 ('Rahul Sharma', 'rahul@example.com', '9876543210', 'I am interested in becoming a seller on your platform. Please provide more information about the vendor registration process.', DATE_SUB(NOW(), INTERVAL 5 DAY)),
 ('Vikram Singh', 'vikram@example.com', '9876543214', 'Do you offer cash on delivery option? I prefer paying after receiving the product.', NOW());
+
+
+INSERT INTO hero_features (images)
+VALUES 
+(
+    '["pkg1.png","pkg2.png","pkg3.png"]'
+);

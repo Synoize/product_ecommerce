@@ -7,6 +7,15 @@
 
 require_once 'includes/header.php';
 
+$heroFeatures = [];
+
+try {
+    $stmt = $pdo->query("SELECT * FROM hero_features ORDER BY id DESC");
+    $heroFeatures = $stmt->fetchAll();
+} catch (PDOException $e) {
+    // hero_features table might not exist yet
+}
+
 // Fetch featured products
 $featuredProducts = [];
 try {
@@ -53,14 +62,39 @@ try {
 
             <!-- IMAGE (SHOW FIRST ON MOBILE) -->
             <div class="order-1 md:order-2 relative w-full h-[200px] sm:h-[400px] md:h-[450px] lg:h-[500px] flex items-center justify-center">
-                <img src="<?php echo IMAGES_URL; ?>/pkg1.png"
-                    class="pkg absolute max-h-full w-auto opacity-0 scale-75">
+                <?php if (!empty($heroFeatures)) : ?>
 
-                <img src="<?php echo IMAGES_URL; ?>/pkg2.png"
-                    class="pkg absolute max-h-full w-auto opacity-0 scale-75">
+                    <?php
+                    foreach ($heroFeatures as $feature) :
 
-                <img src="<?php echo IMAGES_URL; ?>/pkg1.png"
-                    class="pkg absolute max-h-full w-auto opacity-0 scale-75">
+                        $images = json_decode($feature['images'], true);
+
+                        if (!empty($images)) :
+
+                            foreach ($images as $image) :
+                    ?>
+
+                                <img
+                                    src="<?php echo IMAGES_URL . 'info_image/' . $image; ?>"
+                                    class="pkg absolute max-h-full w-auto opacity-0 scale-75"
+                                    alt="Hero Image">
+
+                    <?php
+                            endforeach;
+
+                        endif;
+
+                    endforeach;
+                    ?>
+
+                <?php else : ?>
+
+                    <!-- Fallback Images -->
+                    <img src="<?php echo IMAGES_URL; ?>info_image/pkg1.png" class="pkg absolute max-h-full w-auto opacity-0 scale-75">
+                    <img src="<?php echo IMAGES_URL; ?>info_image/pkg2.png" class="pkg absolute max-h-full w-auto opacity-0 scale-75">
+                    <img src="<?php echo IMAGES_URL; ?>info_image/pkg1.png" class="pkg absolute max-h-full w-auto opacity-0 scale-75">
+
+                <?php endif; ?>
             </div>
 
             <!-- TEXT (SHOW BELOW ON MOBILE) -->
@@ -248,7 +282,7 @@ try {
                     </div>
 
                     <!-- CONTENT -->
-                    <div class="p-3 md:p-4 flex flex-col justify-between h-[160px]">
+                    <div class="p-3 md:p-4 flex flex-col justify-between h-[160px] md:h-[180px]">
 
                         <!-- CATEGORY -->
                         <!-- <small class="text-gray-400 text-xs uppercase tracking-wide">
@@ -260,17 +294,24 @@ try {
                             <?php echo e($product['name']); ?>
                         </h3>
 
-                        <!-- DESCRIPTION -->
-                        <!-- <p class="text-gray-500 text-xs sm:text-sm line-clamp-2">
-                            <?php echo substr(e($product['description']), 0, 60) . '...'; ?>
-                        </p> -->
-
+                        <!-- WEIGHT -->
+                        <?php
+                        $displayWeight = '';
+                        if (!empty($product['weight'])) {
+                            $displayWeight = trim((string)$product['weight']);
+                        }
+                        ?>
+                        <?php if ($displayWeight !== ''): ?>
+                            <p class="text-gray-500 text-xs mt-1">
+                                <i class="fas fa-weight-hanging mr-1 text-accent"></i><?php echo e($displayWeight); ?>
+                            </p>
+                        <?php endif; ?>
 
                         <!-- PRICE -->
                         <div class="w-full flex justify-between items-center">
 
                             <!-- LEFT: PRICE -->
-                            <div class="flex items-baseline flex-wrap md:gap-2">
+                            <div class="flex items-baseline flex-wrap space-x-1">
 
                                 <span class="text-primary-600 font-bold text-base sm:text-lg md:text-xl">
                                     <?php echo formatCurrency($product['price']); ?>
@@ -358,7 +399,7 @@ try {
     </div>
 
     <!-- MAIN CONTENT -->
-    <div class="max-w-7xl mx-auto px-6 pt-24 pb-16 grid lg:grid-cols-2 gap-12 items-center">
+    <div class="max-w-7xl mx-auto px-6 pt-24 pb-24 grid lg:grid-cols-2 gap-12 items-center">
 
         <!-- LEFT IMAGE -->
         <div class="flex justify-center lg:justify-start">
@@ -376,7 +417,11 @@ try {
         <!-- RIGHT CONTENT -->
         <div class="text-center lg:text-left space-y-6">
 
-            <h2 class="scroll-animate-top text-3xl md:text-5xl font-luckiest text-primary-600 mb-3">From Classic to Bold — Discover a Flavor for Every <span class="text-white" style="-webkit-text-stroke: 1px black;">Mood.</span></h2>
+            <h2 class="scroll-animate-top text-3xl md:text-5xl font-luckiest text-primary-600 mb-3">
+                From Classic to
+                <span class="text-white" style="-webkit-text-stroke: 1px black;">Bold — </span> Discover a Flavor for Every
+                <span class="text-white" style="-webkit-text-stroke: 1px black;">Mood.</span>
+            </h2>
 
             <!-- FEATURES -->
             <ul class="space-y-4 text-xs sm:text-base text-gray-800 max-w-lg mx-auto lg:mx-0">
@@ -489,11 +534,25 @@ try {
                             <?php echo e($product['name']); ?>
                         </h3>
 
+                         <!-- WEIGHT -->
+                        <?php
+                        $displayWeight = '';
+                        if (!empty($product['weight'])) {
+                            $displayWeight = trim((string)$product['weight']);
+                        }
+                        ?>
+                        <?php if ($displayWeight !== ''): ?>
+                            <p class="text-gray-500 text-xs mt-1">
+                                <i class="fas fa-weight-hanging mr-1 text-accent"></i><?php echo e($displayWeight); ?>
+                            </p>
+                        <?php endif; ?>
+
+
                         <!-- PRICE ROW -->
                         <div class="flex justify-between items-center">
 
                             <!-- PRICE -->
-                            <div class="flex items-center md:gap-2 flex-wrap">
+                            <div class="flex items-center space-x-1 flex-wrap">
                                 <span class="text-primary-600 font-bold text-sm sm:text-base md:text-lg">
                                     <?php echo formatCurrency($product['price']); ?>
                                 </span>
@@ -685,7 +744,7 @@ try {
         <!-- RIGHT FEATURES -->
         <div class="space-y-10 text-center md:text-left scroll-animate-right">
 
-             <div class="flex flex-col items-center md:items-start">
+            <div class="flex flex-col items-center md:items-start">
                 <img src="<?php echo IMAGES_URL; ?>/variety_snacks.png"
                     class="w-20 h-20 object-contain animate-float">
                 <h3 class="font-semibold text-gray-800">Variety of Snacks</h3>
@@ -738,6 +797,6 @@ try {
     </div>
 </section>
 
- <?php require_once __DIR__ . '../includes/floating-icons.php'; ?>
+<?php require_once __DIR__ . '../includes/floating-icons.php'; ?>
 
 <?php require_once 'includes/footer.php'; ?>

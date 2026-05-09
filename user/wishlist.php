@@ -138,7 +138,7 @@ $pageTitle = 'My Wishlist';
                         </div>
 
                         <!-- CONTENT -->
-                        <div class="p-3 md:p-4 flex flex-col justify-between h-[160px]">
+                        <div class="p-3 md:p-4 flex flex-col justify-between h-[160px] md:h-[180px]">
 
                             <!-- CATEGORY -->
                             <!-- <small class="text-gray-400 text-xs uppercase tracking-wide">
@@ -160,7 +160,7 @@ $pageTitle = 'My Wishlist';
                             <div class="w-full flex justify-between items-center">
 
                                 <!-- LEFT: PRICE -->
-                                <div class="flex items-baseline flex-wrap md:gap-2">
+                                <div class="flex items-baseline flex-wrap space-x-1">
 
                                     <span class="text-primary-600 font-bold text-base sm:text-lg md:text-xl">
                                         <?php echo formatCurrency($product['price']); ?>

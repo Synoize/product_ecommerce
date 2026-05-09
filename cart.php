@@ -56,6 +56,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         if (isset($_SESSION['cart'][$cartKey])) {
                             $_SESSION['cart'][$cartKey]['quantity'] += $quantity;
                         } else {
+                            // Use default weight from product if no weight variant selected
+                            $weightLabel = $weight ? $weight['weight'] : (isset($product['weight']) && trim($product['weight']) !== '' ? trim($product['weight']) : null);
+                            
                             $_SESSION['cart'][$cartKey] = [
                                 'id' => $product['id'],
                                 'name' => $product['name'],
@@ -64,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 'quantity' => $quantity,
                                 'stock' => $availableStock,
                                 'weight_id' => $weightId,
-                                'weight' => $weight ? $weight['weight'] : null
+                                'weight' => $weightLabel
                             ];
                         }
                         setFlash('Product added to cart successfully!', 'success');
@@ -254,17 +257,23 @@ $total = $subtotal - $discount;
                                     <!-- Image -->
                                     <div class="w-20 h-20 flex-shrink-0">
                                         <?php $imageUrl = getImageUrl($item['image'], 'products'); ?>
-                                        <img src="<?php echo $imageUrl; ?>" class="w-full h-full object-cover rounded-lg">
+                                        <a href="<?php echo BASE_URL; ?>product.php?id=<?php echo $item['id']; ?>" class="block hover:opacity-75 transition">
+                                            <img src="<?php echo $imageUrl; ?>" class="w-full h-full object-cover rounded-lg">
+                                        </a>
                                     </div>
 
                                     <!-- Info -->
                                     <div class="flex-1 min-w-0">
-                                        <h5 class="font-semibold text-gray-900 truncate">
-                                            <?php echo e($item['name']); ?>
-                                        </h5>
+                                        <a href="<?php echo BASE_URL; ?>product.php?id=<?php echo $item['id']; ?>" class="block group">
+                                            <h5 class="font-semibold text-gray-900 truncate group-hover:text-accent transition">
+                                                <?php echo e($item['name']); ?>
+                                            </h5>
+                                        </a>
 
                                         <?php if (!empty($item['weight'])): ?>
-                                            <p class="text-accent text-sm"><?php echo e($item['weight']); ?></p>
+                                            <p class="text-accent text-sm">
+                                                <i class="fas fa-weight-hanging mr-1 text-xs"></i><?php echo e($item['weight']); ?>
+                                            </p>
                                         <?php endif; ?>
 
                                         <p class="text-gray-500 text-sm"><?php echo formatCurrency($item['price']); ?></p>

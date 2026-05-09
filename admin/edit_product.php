@@ -67,6 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $price = isset($_POST['price']) ? (float)$_POST['price'] : 0;
     $originalPrice = isset($_POST['original_price']) ? (float)$_POST['original_price'] : 0;
     $stock = isset($_POST['stock']) ? (int)$_POST['stock'] : 0;
+    $weight = isset($_POST['weight']) ? trim($_POST['weight']) : '';
     $status = isset($_POST['status']) ? 1 : 0;
     
     // Validation
@@ -180,10 +181,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             $stmt = $pdo->prepare("UPDATE products SET 
                 name = ?, description = ?, ingredients = ?, shipping_return = ?, legal_mandatories = ?, category_id = ?, price = ?, original_price = ?, 
-                stock = ?, image = ?, gallery = ?, status = ?, updated_at = NOW() 
+                stock = ?, weight = ?, image = ?, gallery = ?, status = ?, updated_at = NOW() 
                 WHERE id = ?");
             $stmt->execute([$name, $description, $ingredients, $shippingReturn, $legalMandatories, $categoryId, $price, $originalPrice, 
-                          $stock, $imageName, $galleryJson, $status, $productId]);
+                          $stock, $weight, $imageName, $galleryJson, $status, $productId]);
             
             // Delete existing weights and insert new ones
             $stmt = $pdo->prepare("DELETE FROM product_weights WHERE product_id = ?");
@@ -280,6 +281,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Stock Quantity *</label>
                                 <input type="number" name="stock" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500" min="0" required
                                        value="<?php echo e($_POST['stock'] ?? $product['stock']); ?>">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Default Weight</label>
+                                <input type="text" name="weight" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
+                                       value="<?php echo e($_POST['weight'] ?? ($product['weight'] ?? '')); ?>"
+                                       placeholder="e.g., 200g, 500ml, 1 piece">
+                                <p class="text-xs text-gray-500 mt-1">Default weight shown when no weight variants are added</p>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>

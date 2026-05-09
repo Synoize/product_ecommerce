@@ -19,11 +19,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $mobile = isset($_POST['mobile']) ? trim($_POST['mobile']) : '';
     $password = isset($_POST['password']) ? $_POST['password'] : '';
     $confirmPassword = isset($_POST['confirm_password']) ? $_POST['confirm_password'] : '';
+    $mobile = preg_replace('/\\s+/', '', $mobile);
     
     // Validation
     if (empty($name)) $errors[] = 'Name is required';
     if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = 'Valid email is required';
-    if (empty($mobile) || !preg_match('/^[0-9]{10}$/', $mobile)) $errors[] = 'Valid 10-digit mobile number is required';
+    if (empty($mobile) || !preg_match('/^\\+[1-9]\\d{7,14}$/', $mobile)) $errors[] = 'Valid mobile number with country code is required (e.g. +919876543210)';
     if (empty($password) || strlen($password) < 6) $errors[] = 'Password must be at least 6 characters';
     if ($password !== $confirmPassword) $errors[] = 'Passwords do not match';
     
@@ -51,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user_email'] = $email;
                 $_SESSION['user_role'] = 'user';
                 
-                setFlash('Welcome to WebStore! Your account has been created.', 'success');
+                setFlash('Welcome to Earthence! Your account has been created.', 'success');
                 redirect(BASE_URL);
                 exit; // Stop execution after redirect
             }
@@ -103,10 +104,10 @@ require_once __DIR__ . '/../includes/header.php';
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Mobile Number</label>
                     <input type="tel" name="mobile" required
-                           pattern="[0-9]{10}" maxlength="10"
+                           pattern="\+[0-9]{8,15}" maxlength="16"
                            value="<?php echo isset($_POST['mobile']) ? e($_POST['mobile']) : ''; ?>"
                            class="w-full px-4 py-3 border rounded-lg outline-none focus:border-accent transition">
-                    <p class="text-xs text-gray-500 mt-1">Enter 10-digit mobile number</p>
+                    <p class="text-xs text-gray-500 mt-1">Enter mobile with country code (e.g. +919876543210)</p>
                 </div>
                 
                 <div>
@@ -124,7 +125,7 @@ require_once __DIR__ . '/../includes/header.php';
                 <div class="flex items-center">
                     <input type="checkbox" id="terms" required class="w-4 h-4 text-primary-500 border-gray-300 rounded focus:ring-primary-500 mt-1">
                     <label class="ml-2 text-gray-600 text-xs md:text-sm" for="terms">
-                        I agree to the <a href="#" class="text-accent hover:text-accent-800">Terms of Service</a> and <a href="#" class="text-accent hover:text-accent-800">Privacy Policy</a>
+                        I agree to the <a href="<?php echo BASE_URL; ?>privacy_policy.php" class="text-accent hover:text-accent-800">Terms of Service</a> and <a href="<?php echo BASE_URL; ?>privacy_policy.php" class="text-accent hover:text-accent-800">Privacy Policy</a>
                     </label>
                 </div>
                 
@@ -145,7 +146,13 @@ require_once __DIR__ . '/../includes/header.php';
 <script>
 // Mobile number validation
 document.querySelector('input[name="mobile"]').addEventListener('input', function(e) {
-    this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);
+    this.value = this.value.replace(/\s+/g, '');
+    if (this.value.length > 0 && this.value[0] !== '+') {
+        this.value = '+' + this.value.replace(/[^0-9]/g, '');
+    } else {
+        this.value = '+' + this.value.substring(1).replace(/[^0-9]/g, '');
+    }
+    this.value = this.value.slice(0, 16);
 });
 
 // Form validation
@@ -154,9 +161,9 @@ document.getElementById('signupForm').addEventListener('submit', function(e) {
     var password = document.querySelector('input[name="password"]');
     var confirmPassword = document.querySelector('input[name="confirm_password"]');
     
-    if (!/^[0-9]{10}$/.test(mobile.value)) {
+    if (!/^\+[1-9]\d{7,14}$/.test(mobile.value.replace(/\s+/g, ''))) {
         e.preventDefault();
-        alert('Please enter a valid 10-digit mobile number');
+        alert('Please enter a valid mobile number with country code (e.g. +919876543210)');
         mobile.focus();
         return false;
     }

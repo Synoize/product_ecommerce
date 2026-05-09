@@ -88,6 +88,7 @@ CREATE TABLE IF NOT EXISTS `products` (
   `legal_mandatories` text DEFAULT NULL,
   `category_id` int(11) DEFAULT NULL,
   `price` decimal(10,2) NOT NULL,
+  `weight` varchar(50) NOT NULL DEFAULT '',
   `original_price` decimal(10,2) DEFAULT NULL,
   `stock` int(11) NOT NULL DEFAULT 0,
   `image` varchar(255) DEFAULT NULL,
