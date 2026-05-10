@@ -26,6 +26,9 @@
         <a href="<?php echo BASE_URL; ?>admin/manage_hero_features.php" class="<?php echo $adminNavLinkClass('manage_hero_features.php'); ?>">
             <i class="fas fa-images w-6"></i>Hero Features
         </a>
+        <a href="<?php echo BASE_URL; ?>admin/manage_featured_videos.php" class="<?php echo $adminNavLinkClass('manage_featured_videos.php'); ?>">
+            <i class="fas fa-video w-6"></i>Featured Videos
+        </a>
         <a href="<?php echo BASE_URL; ?>admin/manage_orders.php" class="<?php echo $adminNavLinkClass('manage_orders.php'); ?>">
             <i class="fas fa-shopping-cart w-6"></i>Orders
         </a>

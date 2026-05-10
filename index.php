@@ -24,27 +24,27 @@ try {
     $featuredProductsVideo = $stmt->fetchAll();
 } catch (PDOException $e) {
 
-    // Fallback Videos
+    // Fallback Videos - Examples of both types (File Upload & YouTube)
     $featuredProductsVideo = [
         [
             "badge" => "Best Seller",
-            "file_path" => "makhana-classic.mp4"
+            "file_path" => "makhana-classic.mp4"  // Uploaded file
+        ],
+        [
+            "badge" => "New Arrival",
+            "file_path" => "https://www.youtube.com/embed/dQw4w9WgXcQ"  // YouTube video
         ],
         [
             "badge" => "Cheesy",
-            "file_path" => "cheese-makhana.mp4"
+            "file_path" => "cheese-makhana.mp4"  // Uploaded file
         ],
         [
-            "badge" => "Spicy",
-            "file_path" => "peri-peri-makhana.mp4"
-        ],
-        [
-            "badge" => "Hot Deal",
-            "file_path" => "spicy-masala.mp4"
+            "badge" => "Trending",
+            "file_path" => "https://www.youtube.com/embed/9bZkp7q19f0"  // YouTube video
         ],
         [
             "badge" => "Premium",
-            "file_path" => "premium-spices.mp4"
+            "file_path" => "premium-spices.mp4"  // Uploaded file
         ],
     ];
 }
@@ -474,47 +474,71 @@ try {
         </div>
 
         <!-- Carousel Wrapper -->
-        <div class="relative mt-12">
+        <div class="relative mt-12 overflow-hidden">
 
             <!-- Carousel -->
             <div id="featureCarousel"
-                class="flex gap-5 md:gap-7 overflow-x-auto scroll-smooth px-4 md:px-6 lg:px-2 pb-2
-    [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                class="flex items-center gap-5 md:gap-7 overflow-x-auto scroll-smooth px-4 md:px-10 pb-4
+        snap-x snap-mandatory
+        [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
 
-                <?php foreach ($featuredProductsVideo as $video): ?>
+                <?php foreach ($featuredProductsVideo as $video):
+
+                    $videoIsYouTube = strpos($video['file_path'], 'youtube.com/embed') !== false;
+
+                ?>
 
                     <!-- Card -->
-                    <div class="shrink-0
-            w-[78%]
-            sm:w-[58%]
-            md:w-[38%]
-            lg:w-[28%]
-            xl:w-[23%] scroll-animate-bottom">
+                    <div class="snap-center shrink-0
+                w-[80%]
+                sm:w-[58%]
+                md:w-[40%]
+                lg:w-[28%]
+                xl:w-[23%]">
 
-                        <div class="group relative overflow-hidden rounded-xl
-                h-[360px] sm:h-[380px] md:h-[430px]
-                bg-white transition duration-500 border">
+                        <div class="group relative overflow-hidden rounded-[2rem]
+                    h-[360px] sm:h-[390px] md:h-[430px]
+                    bg-white border border-gray-100 shadow-sm">
 
-                            <!-- Video -->
-                            <video
-                                src="<?php echo UPLOADS_URL . $video['file_path']; ?>"
-                                class="w-full h-full object-cover transition duration-700 group-hover:scale-105"
-                                autoplay
-                                muted
-                                loop
-                                playsinline>
-                            </video>
+                            <!-- Video Wrapper -->
+                            <div class="relative w-full h-full overflow-hidden rounded-2xl">
 
-                            <!-- Overlay -->
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/10 via-black/10 to-transparent"></div>
+                                <?php if ($videoIsYouTube): ?>
+
+                                    <!-- YouTube Video -->
+                                    <iframe
+                                        src="<?php echo e($video['file_path']) . '?autoplay=1&mute=1&loop=1&controls=0&playlist=' . substr(strrchr($video['file_path'], '/'), 1); ?>"
+                                        class="w-full h-full object-cover scale-[1.02] group-hover:scale-105 transition duration-700"
+                                        frameborder="0"
+                                        allow="autoplay; encrypted-media"
+                                        allowfullscreen>
+                                    </iframe>
+
+                                <?php else: ?>
+
+                                    <!-- Uploaded Video -->
+                                    <video
+                                        src="<?php echo UPLOADS_URL . $video['file_path']; ?>"
+                                        class="w-full h-full object-cover group-hover:scale-105 transition duration-700"
+                                        autoplay
+                                        muted
+                                        loop
+                                        playsinline>
+                                    </video>
+
+                                <?php endif; ?>
+
+                                <!-- Overlay -->
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/10 via-black/10 to-transparent pointer-events-none"></div>
+
+                            </div>
 
                             <!-- Badge -->
-                            <div class="absolute top-4 left-4">
-                                <span class="bg-white/90 backdrop-blur-md text-accent text-xs font-bold px-4 py-2 rounded-full border">
+                            <div class="absolute top-4 left-4 z-20">
+                                <span class="bg-white/90 backdrop-blur-xl text-accent text-xs font-bold px-4 py-2 rounded-full border">
                                     <?= e($video['badge']); ?>
                                 </span>
                             </div>
-
                         </div>
 
                     </div>
@@ -525,62 +549,65 @@ try {
 
             <!-- Left Button -->
             <button onclick="scrollCarousel(-1)"
-                class="absolute left-2 md:left-0 top-1/2 -translate-y-1/2 z-20
-                w-10 h-10 flex items-center justify-center
-                rounded-full bg-white/90 backdrop-blur-md shadow-md
-                text-accent hover:bg-gray-100
-                transition duration-300">
+                class="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-30
+        w-12 h-12 flex items-center justify-center
+        rounded-full bg-white/90 backdrop-blur-xl
+        border border-gray-100 shadow-lg
+        text-accent hover:bg-accent hover:text-white
+        transition duration-300">
 
                 <i data-lucide="chevron-left" class="w-5 h-5"></i>
             </button>
 
             <!-- Right Button -->
             <button onclick="scrollCarousel(1)"
-                class="absolute right-2 md:right-0 top-1/2 -translate-y-1/2 z-20
-                w-10 h-10 flex items-center justify-center
-                rounded-full bg-white/90 backdrop-blur-md shadow-md
-                text-accent hover:bg-gray-100
-                transition duration-300">
+                class="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-30
+        w-12 h-12 flex items-center justify-center
+        rounded-full bg-white/90 backdrop-blur-xl
+        border border-gray-100 shadow-lg
+        text-accent hover:bg-accent hover:text-white
+        transition duration-300">
 
                 <i data-lucide="chevron-right" class="w-5 h-5"></i>
             </button>
 
         </div>
 
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+
+                const container = document.getElementById("featureCarousel");
+
+                if (!container) return;
+
+                function getScrollAmount() {
+
+                    const firstCard = container.children[0];
+
+                    if (!firstCard) return 300;
+
+                    const style = window.getComputedStyle(container);
+
+                    const gap = parseInt(style.gap) || 20;
+
+                    return firstCard.offsetWidth + gap;
+                }
+
+                window.scrollCarousel = function(direction) {
+
+                    container.scrollBy({
+                        left: direction * getScrollAmount(),
+                        behavior: "smooth"
+                    });
+
+                };
+
+            });
+        </script>
+
     </div>
 
 </section>
-
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-
-        const container = document.getElementById("featureCarousel");
-
-        if (!container) return;
-
-        function getScrollAmount() {
-
-            const firstCard = container.children[0];
-
-            if (!firstCard) return 300;
-
-            const style = window.getComputedStyle(container);
-            const gap = parseInt(style.gap) || 20;
-
-            return firstCard.offsetWidth + gap;
-        }
-
-        window.scrollCarousel = function(direction) {
-
-            container.scrollBy({
-                left: direction * getScrollAmount(),
-                behavior: "smooth"
-            });
-
-        };
-
-    });
-</script>
 
 <!-- Every Mood -->
 <section class="my-20 relative bg-accent">

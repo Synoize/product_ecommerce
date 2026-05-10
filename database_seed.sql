@@ -524,7 +524,7 @@ VALUES
 INSERT INTO featured_products_video (badge, file_path)
 VALUES
 ('Best Seller', 'makhana-classic.mp4'),
-('Cheesy', 'cheese-makhana.mp4'),
+('Cheesy', 'https://www.youtube.com/embed/dQw4w9WgXcQ'),
 ('Spicy', 'peri-peri-makhana.mp4'),
-('Hot Deal', 'spicy-masala.mp4'),
+('Hot Deal', 'https://www.youtube.com/embed/dQw4w9WgXcQ'),
 ('Premium', 'premium-spices.mp4');
