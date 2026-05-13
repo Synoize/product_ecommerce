@@ -91,14 +91,14 @@ require_once __DIR__ . '/../includes/header.php';
                     <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
                     <input type="text" name="name" required
                            value="<?php echo isset($_POST['name']) ? e($_POST['name']) : ''; ?>"
-                           class="w-full px-4 py-3 border rounded-lg outline-none focus:border-accent transition">
+                           class="w-full px-4 py-3 border rounded-lg outline-none focus:border-primary transition">
                 </div>
                 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
                     <input type="email" name="email" required
                            value="<?php echo isset($_POST['email']) ? e($_POST['email']) : ''; ?>"
-                           class="w-full px-4 py-3 border rounded-lg outline-none focus:border-accent transition">
+                           class="w-full px-4 py-3 border rounded-lg outline-none focus:border-primary transition">
                 </div>
                 
                 <div>
@@ -106,37 +106,37 @@ require_once __DIR__ . '/../includes/header.php';
                     <input type="tel" name="mobile" required
                            pattern="\+[0-9]{8,15}" maxlength="16"
                            value="<?php echo isset($_POST['mobile']) ? e($_POST['mobile']) : ''; ?>"
-                           class="w-full px-4 py-3 border rounded-lg outline-none focus:border-accent transition">
+                           class="w-full px-4 py-3 border rounded-lg outline-none focus:border-primary transition">
                     <p class="text-xs text-gray-500 mt-1">Enter mobile with country code (e.g. +919876543210)</p>
                 </div>
                 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Password (min 6 characters)</label>
                     <input type="password" name="password" required minlength="6"
-                           class="w-full px-4 py-3 border rounded-lg outline-none focus:border-accent transition">
+                           class="w-full px-4 py-3 border rounded-lg outline-none focus:border-primary transition">
                 </div>
                 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
                     <input type="password" name="confirm_password" required
-                           class="w-full px-4 py-3 border rounded-lg outline-none focus:border-accent transition">
+                           class="w-full px-4 py-3 border rounded-lg outline-none focus:border-primary transition">
                 </div>
                 
                 <div class="flex items-center">
                     <input type="checkbox" id="terms" required class="w-4 h-4 text-primary-500 border-gray-300 rounded focus:ring-primary-500 mt-1">
                     <label class="ml-2 text-gray-600 text-xs md:text-sm" for="terms">
-                        I agree to the <a href="<?php echo BASE_URL; ?>privacy_policy.php" class="text-accent hover:text-accent-800">Terms of Service</a> and <a href="<?php echo BASE_URL; ?>privacy_policy.php" class="text-accent hover:text-accent-800">Privacy Policy</a>
+                        I agree to the <a href="<?php echo BASE_URL; ?>privacy_policy.php" class="text-primary hover:text-primary-700">Terms of Service</a> and <a href="<?php echo BASE_URL; ?>privacy_policy.php" class="text-primary hover:text-primary-700">Privacy Policy</a>
                     </label>
                 </div>
                 
-                <button type="submit" class="w-full bg-accent hover:bg-accent-700/90 text-black py-3 rounded-lg transition hover:shadow-sm">
+                <button type="submit" class="w-full bg-primary-700 hover:bg-primary-800 text-white py-3 rounded-lg transition hover:shadow-sm">
                     Create Account
                 </button>
             </form>
             
             <div class="text-center mt-6">
                 <p class="text-gray-600">Already have an account? 
-                    <a href="<?php echo BASE_URL; ?>user/login.php" class="text-accent hover:text-accent-800">Login</a>
+                    <a href="<?php echo BASE_URL; ?>user/login.php" class="text-primary hover:text-primary-700">Login</a>
                 </p>
             </div>
         </div>

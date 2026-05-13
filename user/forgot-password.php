@@ -93,10 +93,10 @@ require_once __DIR__ . '/../includes/header.php';
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
                     <input type="email" name="email" required
-                           class="w-full px-4 py-3 border rounded-lg outline-none focus:border-accent transition">
+                           class="w-full px-4 py-3 border rounded-lg outline-none focus:border-primary transition">
                 </div>
                 
-                <button type="submit" class="w-full bg-accent hover:bg-accent-700/90 text-black py-3 rounded-lg transition hover:shadow-sm">
+                <button type="submit" class="w-full bg-primary-700 hover:bg-primary-800 text-white py-3 rounded-lg transition hover:shadow-sm">
                     <i class="fas fa-paper-plane mr-2"></i>Send Reset Link
                 </button>
             </form>
@@ -104,7 +104,7 @@ require_once __DIR__ . '/../includes/header.php';
             
             <div class="text-center mt-6">
                 <p class="text-gray-600">Remember your password? 
-                    <a href="<?php echo BASE_URL; ?>user/login.php" class="text-accent hover:text-accent-700/90">login</a>
+                    <a href="<?php echo BASE_URL; ?>user/login.php" class="text-primary hover:text-primary-700">login</a>
                 </p>
             </div>
         </div>

@@ -79,13 +79,13 @@ require_once __DIR__ . '/../includes/header.php';
                     <label class="block font-medium text-gray-700 mb-1">Email Address</label>
                     <input type="email" name="email" required 
                            value="<?php echo isset($_POST['email']) ? e($_POST['email']) : ''; ?>"
-                           class="w-full px-4 py-3 border rounded-lg outline-none focus:border-accent transition">
+                           class="w-full px-4 py-3 border rounded-lg outline-none focus:border-primary transition">
                 </div>
                 
                 <div>
                     <label class="block font-medium text-gray-700 mb-1">Password</label>
                     <input type="password" name="password" required
-                           class="w-full px-4 py-3 border rounded-lg outline-none focus:border-accent transition">
+                           class="w-full px-4 py-3 border rounded-lg outline-none focus:border-primary transition">
                 </div>
                 
                 <div class="flex justify-between items-center text-xs md:text-sm">
@@ -96,14 +96,14 @@ require_once __DIR__ . '/../includes/header.php';
                     <a href="<?php echo BASE_URL; ?>user/forgot-password.php" class="text-blue-500 hover:text-blue-600 font-medium">Forgot password?</a>
                 </div>
                 
-                <button type="submit" class="w-full bg-accent hover:bg-accent-700/90 text-black py-3 rounded-lg transition hover:shadow-sm">
+                <button type="submit" class="w-full bg-primary-700 hover:bg-primary-800 text-white py-3 rounded-lg transition hover:shadow-sm">
                     Continue
                 </button>
             </form>
             
             <div class="text-center mt-6">
                 <p class="text-gray-600">Don't have an account? 
-                    <a href="<?php echo BASE_URL; ?>user/signup.php" class="text-accent hover:text-accent-700/90">Sign up</a>
+                    <a href="<?php echo BASE_URL; ?>user/signup.php" class="text-primary hover:text-primary-700">Sign up</a>
                 </p>
             </div>
         </div>

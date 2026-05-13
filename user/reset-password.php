@@ -124,16 +124,16 @@ require_once __DIR__ . '/../includes/header.php';
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">New Password (min 6 characters)</label>
                     <input type="password" name="password" required minlength="6"
-                           class="w-full px-4 py-3 border rounded-lg outline-none focus:border-accent transition">
+                           class="w-full px-4 py-3 border rounded-lg outline-none focus:border-primary transition">
                 </div>
                 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
                     <input type="password" name="confirm_password" required
-                           class="w-full px-4 py-3 border rounded-lg outline-none focus:border-accent transition">
+                           class="w-full px-4 py-3 border rounded-lg outline-none focus:border-primary transition">
                 </div>
                 
-                <button type="submit" class="w-full bg-accent hover:bg-accent-700/90 text-black py-3 rounded-lg transition hover:shadow-sm">
+                <button type="submit" class="w-full bg-primary-700 hover:bg-primary-800 text-white py-3 rounded-lg transition hover:shadow-sm">
                     <i class="fas fa-save mr-2"></i>Reset Password
                 </button>
             </form>
