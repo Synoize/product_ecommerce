@@ -16,39 +16,89 @@ $minPrice = isset($_GET['min_price']) ? (float)$_GET['min_price'] : 0;
 $maxPrice = isset($_GET['max_price']) ? (float)$_GET['max_price'] : 0;
 
 // Build query
-$query = "SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.status = 1";
+$selectClause = "SELECT p.*, c.name as category_name, pv.variant_min_price, pv.variant_original_price, pv.variant_stock, pv.variant_weight, pv.variant_flavour";
+$fromClause = " FROM products p 
+    LEFT JOIN categories c ON p.category_id = c.id
+    LEFT JOIN (
+        SELECT 
+            product_id,
+            MIN(price) AS variant_min_price,
+            MAX(original_price) AS variant_original_price,
+            SUM(stock) AS variant_stock,
+            SUBSTRING_INDEX(GROUP_CONCAT(weight ORDER BY sort_order ASC SEPARATOR '||'), '||', 1) AS variant_weight,
+            SUBSTRING_INDEX(GROUP_CONCAT(NULLIF(flavour, '') ORDER BY sort_order ASC SEPARATOR '||'), '||', 1) AS variant_flavour
+        FROM product_variants
+        WHERE status = 1
+        GROUP BY product_id
+    ) pv ON pv.product_id = p.id";
+$where = ["p.status = 1"];
 $params = [];
 
 // Category filter
 if ($categoryId > 0) {
-    $query .= " AND p.category_id = ?";
+    $where[] = "p.category_id = ?";
     $params[] = $categoryId;
 }
 
 // Search filter
 if (!empty($searchQuery)) {
-    $query .= " AND (p.name LIKE ? OR p.description LIKE ?)";
-    $params[] = "%$searchQuery%";
-    $params[] = "%$searchQuery%";
+    $where[] = "(p.name LIKE ? OR p.description LIKE ? OR c.name LIKE ? OR EXISTS (
+        SELECT 1 FROM product_variants sv
+        WHERE sv.product_id = p.id
+          AND sv.status = 1
+          AND (sv.flavour LIKE ? OR sv.weight LIKE ? OR sv.sku LIKE ?)
+    ))";
+    $likeSearch = "%$searchQuery%";
+    array_push($params, $likeSearch, $likeSearch, $likeSearch, $likeSearch, $likeSearch, $likeSearch);
 }
 
 // Price filter
-if ($minPrice > 0) {
-    $query .= " AND p.price >= ?";
-    $params[] = $minPrice;
+if ($minPrice > 0 || $maxPrice > 0) {
+    $priceParts = [];
+    $productPriceParts = [];
+    if ($minPrice > 0) {
+        $priceParts[] = "pv2.price >= ?";
+        $productPriceParts[] = "p.price >= ?";
+    }
+    if ($maxPrice > 0) {
+        $priceParts[] = "pv2.price <= ?";
+        $productPriceParts[] = "p.price <= ?";
+    }
+
+    $where[] = "(
+        EXISTS (
+            SELECT 1 FROM product_variants pv2
+            WHERE pv2.product_id = p.id AND pv2.status = 1 AND " . implode(' AND ', $priceParts) . "
+        )
+        OR (
+            NOT EXISTS (SELECT 1 FROM product_variants pv3 WHERE pv3.product_id = p.id AND pv3.status = 1)
+            AND " . implode(' AND ', $productPriceParts) . "
+        )
+    )";
+    if ($minPrice > 0) {
+        $params[] = $minPrice;
+    }
+    if ($maxPrice > 0) {
+        $params[] = $maxPrice;
+    }
+    if ($minPrice > 0) {
+        $params[] = $minPrice;
+    }
+    if ($maxPrice > 0) {
+        $params[] = $maxPrice;
+    }
 }
-if ($maxPrice > 0) {
-    $query .= " AND p.price <= ?";
-    $params[] = $maxPrice;
-}
+
+$whereClause = " WHERE " . implode(" AND ", $where);
+$query = $selectClause . $fromClause . $whereClause;
 
 // Sorting
 switch ($sortBy) {
     case 'price_low':
-        $query .= " ORDER BY p.price ASC";
+        $query .= " ORDER BY COALESCE(pv.variant_min_price, p.price) ASC";
         break;
     case 'price_high':
-        $query .= " ORDER BY p.price DESC";
+        $query .= " ORDER BY COALESCE(pv.variant_min_price, p.price) DESC";
         break;
     case 'name_asc':
         $query .= " ORDER BY p.name ASC";
@@ -66,7 +116,7 @@ $perPage = 12;
 $offset = ($page - 1) * $perPage;
 
 // Count total products for pagination
-$countQuery = str_replace("p.*, c.name as category_name", "COUNT(*) as total", $query);
+$countQuery = "SELECT COUNT(*) as total" . $fromClause . $whereClause;
 $countStmt = $pdo->prepare($countQuery);
 $countStmt->execute($params);
 $totalProducts = $countStmt->fetch()['total'];
@@ -85,6 +135,37 @@ try {
     $products = $stmt->fetchAll();
 } catch (PDOException $e) {
     // Silent fail
+}
+
+function shopQuery(array $overrides = [])
+{
+    $query = array_merge($_GET, $overrides);
+    foreach ($query as $key => $value) {
+        if ($value === '' || $value === null || $value === 0 || $value === '0') {
+            unset($query[$key]);
+        }
+    }
+    unset($query['page'], $query['flavour'], $query['weight']);
+    return http_build_query($query);
+}
+
+function renderShopHiddenInputs($categoryId, $searchQuery, $minPrice, $maxPrice, $sortBy, $includeSearch = true, $includePrice = true)
+{
+    if ($categoryId > 0) {
+        echo '<input type="hidden" name="category" value="' . (int)$categoryId . '">';
+    }
+    if ($includeSearch && $searchQuery !== '') {
+        echo '<input type="hidden" name="search" value="' . e($searchQuery) . '">';
+    }
+    if ($includePrice && $minPrice > 0) {
+        echo '<input type="hidden" name="min_price" value="' . e($minPrice) . '">';
+    }
+    if ($includePrice && $maxPrice > 0) {
+        echo '<input type="hidden" name="max_price" value="' . e($maxPrice) . '">';
+    }
+    if ($sortBy !== 'newest') {
+        echo '<input type="hidden" name="sort" value="' . e($sortBy) . '">';
+    }
 }
 
 // Fetch categories for filter
@@ -106,6 +187,9 @@ if ($categoryId > 0) {
         }
     }
 }
+
+$paginationParams = $_GET;
+unset($paginationParams['flavour'], $paginationParams['weight']);
 ?>
 
 <!-- Page Header -->
@@ -148,6 +232,7 @@ if ($categoryId > 0) {
                 <div class="p-4 overflow-y-auto">
                     <!-- Search -->
                     <form action="<?php echo BASE_URL; ?>shop.php" method="GET" class="flex items-center mb-6 w-full">
+                        <?php renderShopHiddenInputs($categoryId, $searchQuery, $minPrice, $maxPrice, $sortBy, false, true); ?>
 
                         <div class="
         flex items-center w-full 
@@ -191,12 +276,12 @@ if ($categoryId > 0) {
                     <div class="mb-6">
                         <h6 class="font-semibold mb-3 text-gray-700">Categories</h6>
                         <div class="space-y-2">
-                            <a href="<?php echo BASE_URL; ?>shop.php"
+                            <a href="<?php echo BASE_URL; ?>shop.php?<?php echo shopQuery(['category' => 0]); ?>"
                                 class="block px-5 py-3 rounded-lg text-sm text-gray-600 <?php echo $categoryId == 0 ? 'bg-primary-100 font-medium' : 'hover:bg-gray-50'; ?>">
-                                 <i class="fas fa-shop text-primary-600 mr-4"></i> All Categories
+                                <i class="fas fa-shop text-primary-600 mr-4"></i> All Categories
                             </a>
                             <?php foreach ($categories as $category): ?>
-                                <a href="<?php echo BASE_URL; ?>shop.php?category=<?php echo $category['id']; ?>"
+                                <a href="<?php echo BASE_URL; ?>shop.php?<?php echo shopQuery(['category' => $category['id']]); ?>"
                                     class="block py-2.5 px-3 rounded-lg text-sm text-gray-600 <?php echo $categoryId == $category['id'] ? 'bg-primary-100 font-medium' : 'hover:bg-gray-50'; ?>">
                                     <?php if ($category['image']): ?>
                                         <img src="<?php echo getImageUrl($category['image'], 'categories'); ?>" class="w-8 mr-2 object-contain inline">
@@ -209,12 +294,7 @@ if ($categoryId > 0) {
 
                     <!-- Price Filter -->
                     <form action="<?php echo BASE_URL; ?>shop.php" method="GET">
-                        <?php if ($categoryId > 0): ?>
-                            <input type="hidden" name="category" value="<?php echo $categoryId; ?>">
-                        <?php endif; ?>
-                        <?php if (!empty($searchQuery)): ?>
-                            <input type="hidden" name="search" value="<?php echo e($searchQuery); ?>">
-                        <?php endif; ?>
+                        <?php renderShopHiddenInputs($categoryId, $searchQuery, 0, 0, $sortBy, true, false); ?>
 
                         <div class="mb-6">
                             <h6 class="font-semibold mb-3 text-gray-700">Price Range</h6>
@@ -260,6 +340,7 @@ if ($categoryId > 0) {
 
                     <!-- Search -->
                     <form action="<?php echo BASE_URL; ?>shop.php" method="GET" class="hidden md:flex items-center mb-6 w-full">
+                        <?php renderShopHiddenInputs($categoryId, $searchQuery, $minPrice, $maxPrice, $sortBy, false, true); ?>
 
                         <div class="flex items-center w-full bg-gray-50 border rounded-lg p-1 focus-within:bg-white focus-within:border-primary transition-all duration-300">
 
@@ -290,12 +371,12 @@ if ($categoryId > 0) {
                     <div class="mb-6">
                         <h6 class="font-semibold mb-3 text-gray-700">Categories</h6>
                         <div class="space-y-2">
-                            <a href="<?php echo BASE_URL; ?>shop.php"
+                            <a href="<?php echo BASE_URL; ?>shop.php?<?php echo shopQuery(['category' => 0]); ?>"
                                 class="block px-5 py-3 rounded-lg text-sm text-gray-600 <?php echo $categoryId == 0 ? 'bg-primary-100 font-medium' : 'hover:bg-gray-50'; ?>">
                                 <i class="fas fa-shop text-primary-600 mr-4"></i> All Categories
                             </a>
                             <?php foreach ($categories as $category): ?>
-                                <a href="<?php echo BASE_URL; ?>shop.php?category=<?php echo $category['id']; ?>"
+                                <a href="<?php echo BASE_URL; ?>shop.php?<?php echo shopQuery(['category' => $category['id']]); ?>"
                                     class="block py-2.5 px-3 rounded-lg text-sm text-gray-600 <?php echo $categoryId == $category['id'] ? 'bg-primary-100 font-medium' : 'hover:bg-gray-50'; ?>">
                                     <?php if ($category['image']): ?>
                                         <img src="<?php echo getImageUrl($category['image'], 'categories'); ?>" class="w-8 mr-2 object-contain inline">
@@ -308,12 +389,7 @@ if ($categoryId > 0) {
 
                     <!-- Price Filter -->
                     <form action="<?php echo BASE_URL; ?>shop.php" method="GET">
-                        <?php if ($categoryId > 0): ?>
-                            <input type="hidden" name="category" value="<?php echo $categoryId; ?>">
-                        <?php endif; ?>
-                        <?php if (!empty($searchQuery)): ?>
-                            <input type="hidden" name="search" value="<?php echo e($searchQuery); ?>">
-                        <?php endif; ?>
+                        <?php renderShopHiddenInputs($categoryId, $searchQuery, 0, 0, $sortBy, true, false); ?>
 
                         <div class="mb-6">
                             <h6 class="font-semibold mb-3 text-gray-700">Price Range</h6>
@@ -354,18 +430,7 @@ if ($categoryId > 0) {
                         </button>
 
                         <form action="<?php echo BASE_URL; ?>shop.php" method="GET" class="flex items-center space-x-2">
-                            <?php if ($categoryId > 0): ?>
-                                <input type="hidden" name="category" value="<?php echo $categoryId; ?>">
-                            <?php endif; ?>
-                            <?php if (!empty($searchQuery)): ?>
-                                <input type="hidden" name="search" value="<?php echo e($searchQuery); ?>">
-                            <?php endif; ?>
-                            <?php if ($minPrice > 0): ?>
-                                <input type="hidden" name="min_price" value="<?php echo $minPrice; ?>">
-                            <?php endif; ?>
-                            <?php if ($maxPrice > 0): ?>
-                                <input type="hidden" name="max_price" value="<?php echo $maxPrice; ?>">
-                            <?php endif; ?>
+                            <?php renderShopHiddenInputs($categoryId, $searchQuery, $minPrice, $maxPrice, 'newest', true, true); ?>
 
                             <label class="text-sm text-gray-600 hidden md:block">Sort by:</label>
                             <select name="sort" onchange="this.form.submit()"
@@ -383,6 +448,13 @@ if ($categoryId > 0) {
                 <!-- Products Grid -->
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-3 lg:gap-6">
                     <?php foreach ($products as $product): ?>
+                        <?php
+                        $cardPrice = !empty($product['variant_min_price']) ? (float)$product['variant_min_price'] : (float)$product['price'];
+                        $cardOriginalPrice = !empty($product['variant_original_price']) ? (float)$product['variant_original_price'] : (float)($product['original_price'] ?? 0);
+                        $cardStock = $product['variant_stock'] !== null ? (int)$product['variant_stock'] : (int)$product['stock'];
+                        $displayWeight = !empty($product['variant_weight']) ? trim((string)$product['variant_weight']) : trim((string)($product['weight'] ?? ''));
+                        $displayFlavour = trim((string)($product['variant_flavour'] ?? ''));
+                        ?>
                         <div class="bg-white rounded-2xl border hover:shadow-md transition-all duration-300 overflow-hidden group">
 
                             <!-- IMAGE -->
@@ -398,9 +470,9 @@ if ($categoryId > 0) {
                                 </a>
 
                                 <!-- BADGES -->
-                                <?php if ($product['stock'] <= 10 && $product['stock'] > 0): ?>
+                                <?php if ($cardStock <= 10 && $cardStock > 0): ?>
                                     <span class="absolute top-3 left-3 bg-spice/10 backdrop-blur-sm text-spice text-xs font-semibold px-2 py-1 rounded-full shadow">
-                                        Only <?php echo $product['stock']; ?> left
+                                        Only <?php echo $cardStock; ?> left
                                     </span>
                                 <?php endif; ?>
 
@@ -421,15 +493,9 @@ if ($categoryId > 0) {
                                 </h3>
 
                                 <!-- WEIGHT -->
-                                <?php
-                                $displayWeight = '';
-                                if (!empty($product['weight'])) {
-                                    $displayWeight = trim((string)$product['weight']);
-                                }
-                                ?>
-                                <?php if ($displayWeight !== ''): ?>
+                                <?php if ($displayWeight !== '' || $displayFlavour !== ''): ?>
                                     <p class="text-gray-500 text-xs mt-1">
-                                        <i class="fas fa-weight-hanging mr-1 text-accent"></i><?php echo e($displayWeight); ?>
+                                        <i class="fas fa-weight-hanging mr-1 text-accent"></i><?php echo $displayFlavour !== '' ? e($displayFlavour) . ' - ' : ''; ?><?php echo e($displayWeight); ?>
                                     </p>
                                 <?php endif; ?>
 
@@ -440,22 +506,22 @@ if ($categoryId > 0) {
                                     <div class="flex items-baseline flex-wrap space-x-1">
 
                                         <span class="text-green-600 font-semibold text-base sm:text-lg md:text-xl">
-                                            <?php echo formatCurrency($product['price']); ?>
+                                            <?php echo formatCurrency($cardPrice); ?>
                                         </span>
 
-                                        <?php if ($product['original_price'] > $product['price']): ?>
+                                        <?php if ($cardOriginalPrice > $cardPrice): ?>
                                             <span class="text-gray-400 line-through text-xs sm:text-sm">
-                                                <?php echo formatCurrency($product['original_price']); ?>
+                                                <?php echo formatCurrency($cardOriginalPrice); ?>
                                             </span>
                                         <?php endif; ?>
 
                                     </div>
 
                                     <!-- RIGHT: DISCOUNT -->
-                                    <?php if ($product['original_price'] > $product['price']): ?>
+                                    <?php if ($cardOriginalPrice > $cardPrice): ?>
                                         <span class="bg-green-100 text-green-600 text-[8px] md:text-xs text-center font-semibold px-2 py-1 rounded-full text-nowrap">
                                             <?php
-                                            $discount = round((($product['original_price'] - $product['price']) / $product['original_price']) * 100);
+                                            $discount = round((($cardOriginalPrice - $cardPrice) / $cardOriginalPrice) * 100);
                                             echo $discount . '% OFF';
                                             ?>
                                         </span>
@@ -464,7 +530,7 @@ if ($categoryId > 0) {
                                 </div>
 
                                 <!-- BUTTON -->
-                                <?php if ($product['stock'] > 0): ?>
+                                <?php if ($cardStock > 0): ?>
                                     <form action="<?php echo BASE_URL; ?>cart.php" method="POST">
                                         <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
                                         <input type="hidden" name="action" value="add">
@@ -478,7 +544,7 @@ if ($categoryId > 0) {
                                             Add to Cart
                                         </button>
                                     </form>
-                                <?php elseif ($product['stock'] <= 0): ?>
+                                <?php elseif ($cardStock <= 0): ?>
                                     <button disabled
                                         class="w-full p-2.5 flex items-center justify-center 
                    bg-red-500 text-white text-xs md:text-base font-semibold rounded-full cursor-not-allowed">
@@ -510,7 +576,7 @@ if ($categoryId > 0) {
                         <ul class="flex justify-center items-center space-x-2">
                             <?php if ($page > 1): ?>
                                 <li>
-                                    <a href="<?php echo BASE_URL; ?>shop.php?<?php echo http_build_query(array_merge($_GET, ['page' => $page - 1])); ?>"
+                                    <a href="<?php echo BASE_URL; ?>shop.php?<?php echo http_build_query(array_merge($paginationParams, ['page' => $page - 1])); ?>"
                                         class="w-10 h-10 rounded-lg bg-white border border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-50 hover:text-primary transition">
                                         <i class="fas fa-chevron-left"></i>
                                     </a>
@@ -519,7 +585,7 @@ if ($categoryId > 0) {
 
                             <?php for ($i = 1; $i <= $totalPages; $i++): ?>
                                 <li>
-                                    <a href="<?php echo BASE_URL; ?>shop.php?<?php echo http_build_query(array_merge($_GET, ['page' => $i])); ?>"
+                                    <a href="<?php echo BASE_URL; ?>shop.php?<?php echo http_build_query(array_merge($paginationParams, ['page' => $i])); ?>"
                                         class="w-10 h-10 rounded-lg flex items-center justify-center transition <?php echo $i == $page ? 'bg-primary text-white' : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-primary'; ?>">
                                         <?php echo $i; ?>
                                     </a>
@@ -528,7 +594,7 @@ if ($categoryId > 0) {
 
                             <?php if ($page < $totalPages): ?>
                                 <li>
-                                    <a href="<?php echo BASE_URL; ?>shop.php?<?php echo http_build_query(array_merge($_GET, ['page' => $page + 1])); ?>"
+                                    <a href="<?php echo BASE_URL; ?>shop.php?<?php echo http_build_query(array_merge($paginationParams, ['page' => $page + 1])); ?>"
                                         class="w-10 h-10 rounded-lg bg-white border border-gray-300 flex items-center justify-center text-gray-600 hover:bg-gray-50 hover:text-primary transition">
                                         <i class="fas fa-chevron-right"></i>
                                     </a>

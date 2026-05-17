@@ -112,14 +112,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     if (!empty($weights)) {
         foreach ($weights as $weightData) {
+            $weightFlavor = trim($weightData['flavour'] ?? ($weightData['flavor'] ?? ''));
             $weight = trim($weightData['weight'] ?? '');
             $weightPrice = (float)($weightData['price'] ?? 0);
+            $weightOriginalPrice = (float)($weightData['original_price'] ?? 0);
             $weightStock = (int)($weightData['stock'] ?? 0);
             
             if (!empty($weight) && $weightPrice > 0 && $weightStock >= 0) {
                 $validWeights[] = [
+                    'flavour' => $weightFlavor,
                     'weight' => $weight,
                     'price' => $weightPrice,
+                    'original_price' => $weightOriginalPrice > 0 ? $weightOriginalPrice : null,
                     'stock' => $weightStock
                 ];
             }
@@ -138,9 +142,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             // Insert weights if provided
             if (!empty($validWeights)) {
-                $stmt = $pdo->prepare("INSERT INTO product_weights (product_id, weight, price, stock, sort_order) VALUES (?, ?, ?, ?, ?)");
+                $stmt = $pdo->prepare("INSERT INTO product_variants (product_id, flavour, weight, price, original_price, stock, status, sort_order) VALUES (?, ?, ?, ?, ?, ?, 1, ?)");
                 foreach ($validWeights as $index => $weightData) {
-                    $stmt->execute([$productId, $weightData['weight'], $weightData['price'], $weightData['stock'], $index]);
+                    $stmt->execute([$productId, $weightData['flavour'], $weightData['weight'], $weightData['price'], $weightData['original_price'], $weightData['stock'], $index]);
                 }
             }
             
@@ -292,12 +296,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <script>
 let weightIndex = 0;
 
-function addWeight(weight = '', price = '', stock = '') {
+function addWeight(weight = '', price = '', stock = '', flavour = '', originalPrice = '') {
     const container = document.getElementById('weightsContainer');
     const weightDiv = document.createElement('div');
     weightDiv.className = 'weight-entry bg-gray-50 p-4 rounded-lg mb-3';
     weightDiv.innerHTML = `
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+        <div class="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Flavor</label>
+                <input type="text" name="weights[${weightIndex}][flavour]" value="${flavour}" placeholder="e.g., Classic, Peri Peri"
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition">
+            </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Weight *</label>
                 <input type="text" name="weights[${weightIndex}][weight]" value="${weight}" placeholder="e.g., 100g, 250g, 500g" required
@@ -306,6 +315,11 @@ function addWeight(weight = '', price = '', stock = '') {
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Price (₹) *</label>
                 <input type="number" name="weights[${weightIndex}][price]" value="${price}" step="0.01" min="0" required
+                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Offer/MRP</label>
+                <input type="number" name="weights[${weightIndex}][original_price]" value="${originalPrice}" step="0.01" min="0"
                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition">
             </div>
             <div>

@@ -123,7 +123,7 @@ if (!empty($mainImage) && !in_array($mainImage, $gallery)) {
 // Fetch product weights
 $productWeights = [];
 try {
-    $stmt = $pdo->prepare("SELECT * FROM product_weights WHERE product_id = ? ORDER BY sort_order ASC");
+    $stmt = $pdo->prepare("SELECT id, product_id, flavour AS flavor, weight, price, original_price, stock, sort_order, created_at FROM product_variants WHERE product_id = ? AND status = 1 ORDER BY sort_order ASC");
     $stmt->execute([$productId]);
     $productWeights = $stmt->fetchAll();
 } catch (PDOException $e) {
@@ -198,9 +198,22 @@ $productDetailFallbacks = [
     'Legal Mandatories' => "Product: {$productName}\nCategory: {$productCategory}\nCountry of Origin: India\nPlease refer to the product packaging for manufacturer details, batch number, expiry date, MRP, net quantity, and other statutory information.",
 ];
 
+$productFlavors = [];
+$hasUnflavoredWeights = false;
+foreach ($productWeights as $weightOption) {
+    $flavor = trim((string)($weightOption['flavor'] ?? ''));
+    if ($flavor === '') {
+        $hasUnflavoredWeights = true;
+    }
+    if ($flavor !== '' && !in_array($flavor, $productFlavors, true)) {
+        $productFlavors[] = $flavor;
+    }
+}
+
 $selectedWeightIndex = 0;
 foreach ($productWeights as $index => $weight) {
-    if ((int)$weight['stock'] > 0) {
+    $weightFlavor = trim((string)($weight['flavor'] ?? ''));
+    if ((int)$weight['stock'] > 0 && (!$hasUnflavoredWeights || $weightFlavor === '')) {
         $selectedWeightIndex = $index;
         break;
     }
@@ -210,7 +223,18 @@ $selectedWeight = $productWeights[$selectedWeightIndex] ?? null;
 $selectedPrice = $selectedWeight ? (float)$selectedWeight['price'] : (float)$product['price'];
 $selectedStock = $selectedWeight ? (int)$selectedWeight['stock'] : (int)$product['stock'];
 $selectedWeightLabel = $selectedWeight ? $selectedWeight['weight'] : 'Default';
-$productOriginalPrice = (float)($product['original_price'] ?? 0);
+$selectedFlavorLabel = $selectedWeight ? trim((string)($selectedWeight['flavor'] ?? '')) : '';
+$initialFlavorFilter = $hasUnflavoredWeights ? '__without_flavour__' : '';
+$productOriginalPrice = $selectedWeight && !empty($selectedWeight['original_price'])
+    ? (float)$selectedWeight['original_price']
+    : (float)($product['original_price'] ?? 0);
+$productAvailableStock = (int)$product['stock'];
+if (!empty($productWeights)) {
+    $productAvailableStock = 0;
+    foreach ($productWeights as $weightOption) {
+        $productAvailableStock += (int)$weightOption['stock'];
+    }
+}
 
 require_once __DIR__ . '/includes/header.php';
 ?>
@@ -284,11 +308,14 @@ require_once __DIR__ . '/includes/header.php';
                     <!-- Price -->
                     <div class="mb-6 flex items-center">
                         <span id="displayProductPrice" class="text-4xl font-bold text-green-600"><?php echo formatCurrency($selectedPrice); ?></span>
-                        <?php if ($product['original_price'] > $product['price']): ?>
-                            <span id="displayOriginalPrice" class="text-xl text-gray-400 line-through ml-3"><?php echo formatCurrency($product['original_price']); ?></span>
+                        <?php if ($productOriginalPrice > $selectedPrice): ?>
+                            <span id="displayOriginalPrice" class="text-xl text-gray-400 line-through ml-3"><?php echo formatCurrency($productOriginalPrice); ?></span>
                             <span id="displayDiscountBadge" class="inline-block bg-green-500 text-white text-xs font-bold px-2 py-1 rounded ml-5">
-                                <?php echo round((($product['original_price'] - $product['price']) / $product['original_price']) * 100); ?>% OFF
+                                <?php echo round((($productOriginalPrice - $selectedPrice) / $productOriginalPrice) * 100); ?>% OFF
                             </span>
+                        <?php else: ?>
+                            <span id="displayOriginalPrice" class="hidden text-xl text-gray-400 line-through ml-3"></span>
+                            <span id="displayDiscountBadge" class="hidden inline-block bg-green-500 text-white text-xs font-bold px-2 py-1 rounded ml-5"></span>
                         <?php endif; ?>
                     </div>
 
@@ -313,41 +340,68 @@ require_once __DIR__ . '/includes/header.php';
 
                     <!-- Stock Status -->
                     <div class="mb-6">
-                        <?php if ($product['stock'] > 10): ?>
+                        <?php if ($productAvailableStock > 10): ?>
                             <span></span>
-                        <?php elseif ($product['stock'] > 0): ?>
-                            <span class="inline-flex items-center bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm font-medium"><i data-lucide="smile" class="w-4 h-4 mr-1"></i>Only <?php echo $product['stock']; ?> left</span>
+                        <?php elseif ($productAvailableStock > 0): ?>
+                            <span class="inline-flex items-center bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm font-medium"><i data-lucide="smile" class="w-4 h-4 mr-1"></i>Only <?php echo $productAvailableStock; ?> left</span>
                         <?php else: ?>
                             <span class="inline-flex items-center bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium"><i data-lucide="frown" class="w-4 h-4 mr-1"></i> Out of Stock</span>
                         <?php endif; ?>
                     </div>
 
                     <!-- Add to Cart Form -->
-                    <?php if ($product['stock'] > 0): ?>
+                    <?php if ($productAvailableStock > 0): ?>
                         <form action="<?php echo BASE_URL; ?>cart.php" method="POST" class="mb-6">
                             <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
                             <input type="hidden" name="action" value="add">
 
+                            <?php if (!empty($productFlavors) || $hasUnflavoredWeights): ?>
+                                <div class="mb-5">
+                                    <label class="block text-base font-semibold text-gray-800 mb-3">Select Flavour</label>
+                                    <div class="flex flex-wrap gap-3">
+                                        <?php if ($hasUnflavoredWeights): ?>
+                                            <button type="button" class="flavor-filter min-w-[110px] rounded-md border-2 <?php echo $initialFlavorFilter === '__without_flavour__' ? 'border-accent bg-accent/5 text-accent-800' : 'border-gray-300 bg-white text-gray-800'; ?> px-5 py-3 text-center text-sm font-semibold transition hover:border-accent hover:text-accent" data-flavor="__without_flavour__" onclick="selectFlavor(this)">
+                                                No Flavour
+                                            </button>
+                                        <?php endif; ?>
+                                        <?php foreach ($productFlavors as $flavor): ?>
+                                            <button type="button" class="flavor-filter min-w-[110px] rounded-md border-2 border-gray-300 bg-white px-5 py-3 text-center text-sm font-semibold text-gray-800 transition hover:border-accent hover:text-accent" data-flavor="<?php echo e($flavor); ?>" onclick="selectFlavor(this)">
+                                                <?php echo e($flavor); ?>
+                                            </button>
+                                        <?php endforeach; ?>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+
                             <!-- Weight Selection -->
                             <?php if (!empty($productWeights)): ?>
                                 <div class="mb-4">
-                                    <label class="block font-semibold text-gray-700 mb-2">Select Weight:</label>
-                                    <div class="grid grid-cols-3 sm:grid-cols-5 gap-3">
+                                    <label class="block text-base font-semibold text-gray-800 mb-3">Select Weight</label>
+                                    <div class="flex flex-wrap gap-3">
                                         <?php foreach ($productWeights as $index => $weight): ?>
+                                            <?php
+                                            $weightFlavorValue = trim((string)($weight['flavor'] ?? ''));
+                                            $isInitialVisible = $initialFlavorFilter === ''
+                                                || ($initialFlavorFilter === '__without_flavour__' && $weightFlavorValue === '')
+                                                || $initialFlavorFilter === $weightFlavorValue;
+                                            ?>
                                             <label
-                                                class="relative flex items-center justify-center overflow-hidden rounded-lg border px-4 py-3 text-sm text-nowrap font-medium transition-all duration-300
+                                                data-flavor="<?php echo e($weightFlavorValue); ?>"
+                                                class="<?php echo $isInitialVisible ? '' : 'hidden'; ?> relative flex min-w-[105px] items-center justify-center overflow-hidden rounded-md border-2 px-5 py-3 text-sm text-nowrap font-medium transition-all duration-300
     <?php echo (int)$weight['stock'] <= 0
                                                 ? 'cursor-not-allowed bg-gray-100 opacity-60 border-gray-200'
-                                                : 'cursor-pointer bg-white hover:border-accent hover:shadow-sm'; ?>">
+                                                : 'cursor-pointer bg-white border-gray-300 hover:border-accent hover:text-accent hover:shadow-sm'; ?>">
 
                                                 <!-- Radio -->
                                                 <input
                                                     type="radio"
-                                                    name="weight_id"
+                                                    name="variant_id"
                                                     value="<?php echo $weight['id']; ?>"
                                                     class="peer sr-only"
                                                     data-weight="<?php echo e($weight['weight']); ?>"
+                                                    data-flavor="<?php echo e(trim((string)($weight['flavor'] ?? ''))); ?>"
                                                     data-price="<?php echo (float)$weight['price']; ?>"
+                                                    data-original-price="<?php echo !empty($weight['original_price']) ? (float)$weight['original_price'] : (float)($product['original_price'] ?? 0); ?>"
                                                     data-stock="<?php echo (int)$weight['stock']; ?>"
                                                     onchange="updatePrice(this)"
                                                     <?php echo $index === $selectedWeightIndex ? 'checked' : ''; ?>
@@ -355,7 +409,7 @@ require_once __DIR__ . '/includes/header.php';
 
                                                 <!-- Selected Background -->
                                                 <span
-                                                    class="absolute inset-0 rounded-lg border-2 border-transparent transition-all duration-300
+                                                    class="absolute inset-0 rounded-md border-2 border-transparent transition-all duration-300
         peer-checked:border-accent peer-checked:bg-accent/5">
                                                 </span>
 
@@ -364,10 +418,10 @@ require_once __DIR__ . '/includes/header.php';
 
                                                     <!-- Weight -->
                                                     <span
-                                                        class="text-sm text- font-semibold transition-colors duration-300
+                                                        class="text-sm font-semibold transition-colors duration-300
             <?php echo (int)$weight['stock'] <= 0
                                                 ? 'text-gray-400'
-                                                : 'text-gray-800 peer-checked:text-accent'; ?>">
+                                                : 'peer-checked:text-accent-800'; ?>">
                                                         <?php echo e($weight['weight']); ?>
                                                     </span>
 
@@ -460,6 +514,10 @@ require_once __DIR__ . '/includes/header.php';
                                     </span>
                                 </div>
                                 <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between gap-4">
+                                        <span class="text-gray-500">Flavor</span>
+                                        <span id="summaryFlavor" class="font-medium text-gray-900"><?php echo e($selectedFlavorLabel !== '' ? $selectedFlavorLabel : 'No Flavour'); ?></span>
+                                    </div>
                                     <div class="flex justify-between gap-4">
                                         <span class="text-gray-500">Weight</span>
                                         <span id="summaryWeight" class="font-medium text-gray-900"><?php echo e($selectedWeightLabel); ?></span>
@@ -891,7 +949,7 @@ require_once __DIR__ . '/includes/header.php';
     }
 
     let selectedUnitPrice = <?php echo json_encode($selectedPrice); ?>;
-    const productOriginalPrice = <?php echo json_encode($productOriginalPrice); ?>;
+    let selectedOriginalPrice = <?php echo json_encode($productOriginalPrice); ?>;
 
     function formatMoney(amount) {
         return new Intl.NumberFormat('en-IN', {
@@ -922,6 +980,7 @@ require_once __DIR__ . '/includes/header.php';
         const price = Number(input.dataset.price || selectedUnitPrice);
         const stock = Number(input.dataset.stock || 0);
         selectedUnitPrice = price;
+        selectedOriginalPrice = Number(input.dataset.originalPrice || 0);
 
         const qtyInput = document.getElementById('quantity');
         qtyInput.max = stock;
@@ -938,22 +997,60 @@ require_once __DIR__ . '/includes/header.php';
         updatePriceSummary(input);
     }
 
+    function selectFlavor(button) {
+        const wasActive = button.classList.contains('border-accent');
+        const flavorFilter = wasActive ? null : (button.dataset.flavor || '');
+        document.querySelectorAll('.flavor-filter').forEach(filter => {
+            const active = !wasActive && filter === button;
+            filter.classList.toggle('border-accent', active);
+            filter.classList.toggle('bg-accent/5', active);
+            filter.classList.toggle('text-accent', active);
+            filter.classList.toggle('border-gray-300', !active);
+            filter.classList.toggle('bg-white', !active);
+            filter.classList.toggle('text-gray-800', !active);
+        });
+
+        let firstAvailable = null;
+        document.querySelectorAll('label[data-flavor]').forEach(label => {
+            const input = label.querySelector('input[name="variant_id"]');
+            const matches = flavorFilter === null
+                || (flavorFilter === '__without_flavour__' && label.dataset.flavor === '')
+                || label.dataset.flavor === flavorFilter;
+            label.classList.toggle('hidden', !matches);
+            if (!matches && input) {
+                input.checked = false;
+            }
+            if (matches && input && !input.disabled && firstAvailable === null) {
+                firstAvailable = input;
+            }
+        });
+
+        if (firstAvailable) {
+            firstAvailable.checked = true;
+            updatePrice(firstAvailable);
+        }
+    }
+
     function updatePriceSummary(selectedInput = null) {
         const qtyInput = document.getElementById('quantity');
         if (!qtyInput) return;
 
-        const activeWeight = selectedInput || document.querySelector('input[name="weight_id"]:checked');
+        const activeWeight = selectedInput || document.querySelector('input[name="variant_id"]:checked');
         const rawQuantity = Math.max(1, parseInt(qtyInput.value) || 1);
         const stock = activeWeight ? Number(activeWeight.dataset.stock || 0) : Number(qtyInput.max || 0);
         const quantity = stock > 0 ? Math.min(rawQuantity, stock) : rawQuantity;
         const weight = activeWeight ? activeWeight.dataset.weight : 'Default';
+        const flavor = activeWeight && activeWeight.dataset.flavor ? activeWeight.dataset.flavor : 'No Flavour';
         const unitPrice = activeWeight ? Number(activeWeight.dataset.price || selectedUnitPrice) : selectedUnitPrice;
+        const originalPrice = activeWeight ? Number(activeWeight.dataset.originalPrice || 0) : selectedOriginalPrice;
         const total = unitPrice * quantity;
 
         selectedUnitPrice = unitPrice;
+        selectedOriginalPrice = originalPrice;
         qtyInput.value = quantity;
 
         const displayPrice = document.getElementById('displayProductPrice');
+        const summaryFlavor = document.getElementById('summaryFlavor');
         const summaryWeight = document.getElementById('summaryWeight');
         const summaryUnitPrice = document.getElementById('summaryUnitPrice');
         const summaryQuantity = document.getElementById('summaryQuantity');
@@ -962,20 +1059,24 @@ require_once __DIR__ . '/includes/header.php';
         const displayOriginalPrice = document.getElementById('displayOriginalPrice');
         const displayDiscountBadge = document.getElementById('displayDiscountBadge');
         const summaryOriginalPriceRow = document.getElementById('summaryOriginalPriceRow');
+        const summaryOriginalPrice = document.getElementById('summaryOriginalPrice');
         const summarySavingsRow = document.getElementById('summarySavingsRow');
         const summarySavings = document.getElementById('summarySavings');
-        const hasSavings = productOriginalPrice > unitPrice;
+        const hasSavings = originalPrice > unitPrice;
 
         if (displayPrice) displayPrice.textContent = formatMoney(unitPrice);
+        if (summaryFlavor) summaryFlavor.textContent = flavor;
         if (summaryWeight) summaryWeight.textContent = weight;
         if (summaryUnitPrice) summaryUnitPrice.textContent = formatMoney(unitPrice);
+        if (summaryOriginalPrice) summaryOriginalPrice.textContent = formatMoney(originalPrice);
         if (summaryQuantity) summaryQuantity.textContent = quantity;
         if (summaryTotal) summaryTotal.textContent = formatMoney(total);
         if (displayOriginalPrice) displayOriginalPrice.classList.toggle('hidden', !hasSavings);
+        if (displayOriginalPrice && hasSavings) displayOriginalPrice.textContent = formatMoney(originalPrice);
         if (displayDiscountBadge) {
             displayDiscountBadge.classList.toggle('hidden', !hasSavings);
             if (hasSavings) {
-                displayDiscountBadge.textContent = `${Math.round(((productOriginalPrice - unitPrice) / productOriginalPrice) * 100)}% OFF`;
+                displayDiscountBadge.textContent = `${Math.round(((originalPrice - unitPrice) / originalPrice) * 100)}% OFF`;
             }
         }
         if (summaryOriginalPriceRow) {
@@ -987,7 +1088,7 @@ require_once __DIR__ . '/includes/header.php';
             summarySavingsRow.classList.toggle('flex', hasSavings);
         }
         if (summarySavings && hasSavings) {
-            summarySavings.textContent = formatMoney((productOriginalPrice - unitPrice) * quantity);
+            summarySavings.textContent = formatMoney((originalPrice - unitPrice) * quantity);
         }
 
         if (summaryStock) {

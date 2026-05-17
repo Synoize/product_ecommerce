@@ -111,19 +111,21 @@ try {
         $orderId = $pdo->lastInsertId();
         
         // Insert order items and update stock
-        $itemQuery = "INSERT INTO order_items (order_id, product_id, weight_id, weight, quantity, price) VALUES (?, ?, ?, ?, ?, ?)";
+        $itemQuery = "INSERT INTO order_items (order_id, product_id, variant_id, flavour, weight, quantity, price) VALUES (?, ?, ?, ?, ?, ?, ?)";
         $itemStmt = $pdo->prepare($itemQuery);
         
         foreach ($cart as $cartKey => $item) {
             $productId = $item['id'];
-            $weightId = $item['weight_id'] ?? null;
+            $weightId = $item['variant_id'] ?? ($item['weight_id'] ?? null);
             $weight = $item['weight'] ?? null;
+            $flavour = $item['flavour'] ?? null;
             
             // Insert order item
             $itemStmt->execute([
                 $orderId,
                 $productId,
                 $weightId,
+                $flavour,
                 $weight,
                 $item['quantity'],
                 $item['price']
@@ -132,7 +134,7 @@ try {
             // Update stock - decrement from appropriate table
             if ($weightId) {
                 // Update weight-specific stock
-                $weightStockQuery = "UPDATE product_weights SET stock = stock - ? WHERE id = ? AND stock >= ?";
+                $weightStockQuery = "UPDATE product_variants SET stock = stock - ? WHERE id = ? AND stock >= ?";
                 $weightStockStmt = $pdo->prepare($weightStockQuery);
                 $weightStockStmt->execute([$item['quantity'], $weightId, $item['quantity']]);
                 

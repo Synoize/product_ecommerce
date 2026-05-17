@@ -139,20 +139,28 @@ CREATE TABLE IF NOT EXISTS `orders` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `product_weights`
+-- Table structure for table `product_variants`
 --
 
-CREATE TABLE IF NOT EXISTS `product_weights` (
+CREATE TABLE IF NOT EXISTS `product_variants` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `product_id` int(11) NOT NULL,
+  `flavour` varchar(100) NOT NULL DEFAULT '',
   `weight` varchar(50) NOT NULL,
+  `sku` varchar(100) DEFAULT NULL,
   `price` decimal(10,2) NOT NULL,
+  `original_price` decimal(10,2) DEFAULT NULL,
   `stock` int(11) NOT NULL DEFAULT 0,
+  `image` varchar(255) DEFAULT NULL,
+  `status` tinyint(1) DEFAULT 1,
   `sort_order` int(11) DEFAULT 0,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `product_id` (`product_id`),
-  CONSTRAINT `fk_product_weights_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
+  KEY `product_flavour` (`product_id`, `flavour`),
+  KEY `product_weight` (`product_id`, `weight`),
+  CONSTRAINT `fk_product_variants_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
@@ -165,17 +173,18 @@ CREATE TABLE IF NOT EXISTS `order_items` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `order_id` int(11) NOT NULL,
   `product_id` int(11) NOT NULL,
-  `weight_id` int(11) DEFAULT NULL,
+  `variant_id` int(11) DEFAULT NULL,
+  `flavour` varchar(100) DEFAULT NULL,
   `weight` varchar(50) DEFAULT NULL,
   `quantity` int(11) NOT NULL,
   `price` decimal(10,2) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `order_id` (`order_id`),
   KEY `product_id` (`product_id`),
-  KEY `weight_id` (`weight_id`),
+  KEY `variant_id` (`variant_id`),
   CONSTRAINT `fk_items_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_items_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE RESTRICT,
-  CONSTRAINT `fk_items_weight` FOREIGN KEY (`weight_id`) REFERENCES `product_weights` (`id`) ON DELETE SET NULL
+  CONSTRAINT `fk_items_variant` FOREIGN KEY (`variant_id`) REFERENCES `product_variants` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
@@ -318,6 +327,86 @@ SET @exists = (SELECT COUNT(*) FROM information_schema.columns
 SET @sql = IF(@exists = 0, 
               'ALTER TABLE products ADD COLUMN legal_mandatories TEXT DEFAULT NULL AFTER shipping_return', 
               'SELECT "legal_mandatories column already exists"');
+              
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Add product variant table for flavour-specific weight pricing on existing installations
+CREATE TABLE IF NOT EXISTS `product_variants` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `product_id` int(11) NOT NULL,
+  `flavour` varchar(100) NOT NULL DEFAULT '',
+  `weight` varchar(50) NOT NULL,
+  `sku` varchar(100) DEFAULT NULL,
+  `price` decimal(10,2) NOT NULL,
+  `original_price` decimal(10,2) DEFAULT NULL,
+  `stock` int(11) NOT NULL DEFAULT 0,
+  `image` varchar(255) DEFAULT NULL,
+  `status` tinyint(1) DEFAULT 1,
+  `sort_order` int(11) DEFAULT 0,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `product_id` (`product_id`),
+  KEY `product_flavour` (`product_id`, `flavour`),
+  KEY `product_weight` (`product_id`, `weight`),
+  CONSTRAINT `fk_product_variants_product_existing` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+SET @exists = (SELECT COUNT(*) FROM information_schema.columns 
+               WHERE table_schema = DATABASE() AND table_name = 'product_variants' AND column_name = 'flavour');
+
+SET @sql = IF(@exists = 0, 
+              'ALTER TABLE product_variants ADD COLUMN flavour VARCHAR(100) NOT NULL DEFAULT "" AFTER product_id', 
+              'SELECT "flavour column already exists"');
+              
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @exists = (SELECT COUNT(*) FROM information_schema.columns 
+               WHERE table_schema = DATABASE() AND table_name = 'product_variants' AND column_name = 'original_price');
+
+SET @sql = IF(@exists = 0, 
+              'ALTER TABLE product_variants ADD COLUMN original_price DECIMAL(10,2) DEFAULT NULL AFTER price', 
+              'SELECT "product variant original_price column already exists"');
+              
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Backfill variants from older product_weights table if it exists
+SET @old_table_exists = (SELECT COUNT(*) FROM information_schema.tables
+                         WHERE table_schema = DATABASE() AND table_name = 'product_weights');
+SET @variant_count = (SELECT COUNT(*) FROM product_variants);
+SET @sql = IF(@old_table_exists > 0 AND @variant_count = 0,
+              'INSERT INTO product_variants (product_id, flavour, weight, price, original_price, stock, status, sort_order, created_at)
+               SELECT product_id, "", weight, price, NULL, stock, 1, sort_order, created_at FROM product_weights',
+              'SELECT "product variant backfill not needed"');
+
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Add order item variant fields for existing installations
+SET @exists = (SELECT COUNT(*) FROM information_schema.columns 
+               WHERE table_schema = DATABASE() AND table_name = 'order_items' AND column_name = 'variant_id');
+
+SET @sql = IF(@exists = 0, 
+              'ALTER TABLE order_items ADD COLUMN variant_id INT(11) DEFAULT NULL AFTER product_id', 
+              'SELECT "variant_id column already exists"');
+              
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @exists = (SELECT COUNT(*) FROM information_schema.columns 
+               WHERE table_schema = DATABASE() AND table_name = 'order_items' AND column_name = 'flavour');
+
+SET @sql = IF(@exists = 0, 
+              'ALTER TABLE order_items ADD COLUMN flavour VARCHAR(100) DEFAULT NULL AFTER variant_id', 
+              'SELECT "flavour order item column already exists"');
               
 PREPARE stmt FROM @sql;
 EXECUTE stmt;

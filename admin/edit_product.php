@@ -39,7 +39,7 @@ if (!empty($product['gallery'])) {
 // Fetch product weights
 $productWeights = [];
 try {
-    $stmt = $pdo->prepare("SELECT * FROM product_weights WHERE product_id = ? ORDER BY sort_order ASC");
+    $stmt = $pdo->prepare("SELECT id, product_id, flavour AS flavor, weight, price, original_price, stock, sort_order, created_at FROM product_variants WHERE product_id = ? AND status = 1 ORDER BY sort_order ASC");
     $stmt->execute([$productId]);
     $productWeights = $stmt->fetchAll();
 } catch (PDOException $e) {
@@ -161,14 +161,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     if (!empty($weights)) {
         foreach ($weights as $weightData) {
+            $weightFlavor = trim($weightData['flavour'] ?? ($weightData['flavor'] ?? ''));
             $weight = trim($weightData['weight'] ?? '');
             $weightPrice = (float)($weightData['price'] ?? 0);
+            $weightOriginalPrice = (float)($weightData['original_price'] ?? 0);
             $weightStock = (int)($weightData['stock'] ?? 0);
             
             if (!empty($weight) && $weightPrice > 0 && $weightStock >= 0) {
                 $validWeights[] = [
+                    'flavour' => $weightFlavor,
                     'weight' => $weight,
                     'price' => $weightPrice,
+                    'original_price' => $weightOriginalPrice > 0 ? $weightOriginalPrice : null,
                     'stock' => $weightStock
                 ];
             }
@@ -187,13 +191,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                           $stock, $weight, $imageName, $galleryJson, $status, $productId]);
             
             // Delete existing weights and insert new ones
-            $stmt = $pdo->prepare("DELETE FROM product_weights WHERE product_id = ?");
+            $stmt = $pdo->prepare("DELETE FROM product_variants WHERE product_id = ?");
             $stmt->execute([$productId]);
             
             if (!empty($validWeights)) {
-                $stmt = $pdo->prepare("INSERT INTO product_weights (product_id, weight, price, stock, sort_order) VALUES (?, ?, ?, ?, ?)");
+                $stmt = $pdo->prepare("INSERT INTO product_variants (product_id, flavour, weight, price, original_price, stock, status, sort_order) VALUES (?, ?, ?, ?, ?, ?, 1, ?)");
                 foreach ($validWeights as $index => $weightData) {
-                    $stmt->execute([$productId, $weightData['weight'], $weightData['price'], $weightData['stock'], $index]);
+                    $stmt->execute([$productId, $weightData['flavour'], $weightData['weight'], $weightData['price'], $weightData['original_price'], $weightData['stock'], $index]);
                 }
             }
             
@@ -343,7 +347,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div id="weights-container">
                                 <?php if (!empty($productWeights)): ?>
                                     <?php foreach ($productWeights as $index => $weight): ?>
-                                        <div class="weight-entry flex gap-3 items-end p-4 border border-gray-200 rounded-lg bg-gray-50">
+                                        <div class="weight-entry grid grid-cols-1 md:grid-cols-6 gap-3 items-end p-4 border border-gray-200 rounded-lg bg-gray-50">
+                                            <div>
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Flavor</label>
+                                                <input type="text" name="weights[<?php echo $index; ?>][flavour]" value="<?php echo htmlspecialchars($weight['flavor'] ?? ''); ?>" 
+                                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500" 
+                                                       placeholder="e.g., Classic, Peri Peri">
+                                            </div>
                                             <div class="flex-1">
                                                 <label class="block text-sm font-medium text-gray-700 mb-1">Weight</label>
                                                 <input type="text" name="weights[<?php echo $index; ?>][weight]" value="<?php echo htmlspecialchars($weight['weight']); ?>" 
@@ -355,6 +365,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                                 <input type="number" name="weights[<?php echo $index; ?>][price]" value="<?php echo $weight['price']; ?>" 
                                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500" 
                                                        step="0.01" min="0" required>
+                                            </div>
+                                            <div class="flex-1">
+                                                <label class="block text-sm font-medium text-gray-700 mb-1">Offer/MRP</label>
+                                                <input type="number" name="weights[<?php echo $index; ?>][original_price]" value="<?php echo e($weight['original_price'] ?? ''); ?>" 
+                                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500" 
+                                                       step="0.01" min="0">
                                             </div>
                                             <div class="flex-1">
                                                 <label class="block text-sm font-medium text-gray-700 mb-1">Stock</label>
@@ -396,8 +412,14 @@ let weightIndex = <?php echo count($productWeights); ?>;
 function addWeight() {
     const container = document.getElementById('weights-container');
     const weightEntry = document.createElement('div');
-    weightEntry.className = 'weight-entry flex gap-3 items-end p-4 border border-gray-200 rounded-lg bg-gray-50';
+    weightEntry.className = 'weight-entry grid grid-cols-1 md:grid-cols-6 gap-3 items-end p-4 border border-gray-200 rounded-lg bg-gray-50';
     weightEntry.innerHTML = `
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Flavor</label>
+            <input type="text" name="weights[${weightIndex}][flavour]" 
+                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500" 
+                   placeholder="e.g., Classic, Peri Peri">
+        </div>
         <div class="flex-1">
             <label class="block text-sm font-medium text-gray-700 mb-1">Weight</label>
             <input type="text" name="weights[${weightIndex}][weight]" 
@@ -409,6 +431,12 @@ function addWeight() {
             <input type="number" name="weights[${weightIndex}][price]" 
                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500" 
                    step="0.01" min="0" required>
+        </div>
+        <div class="flex-1">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Offer/MRP</label>
+            <input type="number" name="weights[${weightIndex}][original_price]" 
+                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500" 
+                   step="0.01" min="0">
         </div>
         <div class="flex-1">
             <label class="block text-sm font-medium text-gray-700 mb-1">Stock</label>

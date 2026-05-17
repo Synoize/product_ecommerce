@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     switch ($action) {
         case 'add':
             $quantity = isset($_POST['quantity']) ? (int)$_POST['quantity'] : 1;
-            $weightId = isset($_POST['weight_id']) ? (int)$_POST['weight_id'] : null;
+            $weightId = isset($_POST['variant_id']) ? (int)$_POST['variant_id'] : (isset($_POST['weight_id']) ? (int)$_POST['weight_id'] : null);
 
             // Validate product exists and has stock
             try {
@@ -33,16 +33,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $availableStock = $product['stock'];
                     $price = $product['price'];
                     $weight = null;
+                    $flavor = null;
 
                     // If weight is selected, get weight details
                     if ($weightId) {
-                        $stmt = $pdo->prepare("SELECT * FROM product_weights WHERE id = ? AND product_id = ?");
+                        $stmt = $pdo->prepare("SELECT id, product_id, flavour AS flavor, weight, price, original_price, stock FROM product_variants WHERE id = ? AND product_id = ? AND status = 1");
                         $stmt->execute([$weightId, $productId]);
                         $weight = $stmt->fetch();
 
                         if ($weight) {
                             $availableStock = $weight['stock'];
                             $price = $weight['price'];
+                            $flavor = trim((string)($weight['flavor'] ?? ''));
                         } else {
                             setFlash('Invalid weight selection.', 'danger');
                             redirect(isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : BASE_URL . 'shop.php');
@@ -66,7 +68,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 'image' => $product['image'],
                                 'quantity' => $quantity,
                                 'stock' => $availableStock,
+                                'variant_id' => $weightId,
                                 'weight_id' => $weightId,
+                                'flavour' => $flavor,
                                 'weight' => $weightLabel
                             ];
                         }
@@ -296,7 +300,7 @@ $total = $subtotal - $discount;
 
                                         <?php if (!empty($item['weight'])): ?>
                                             <p class="text-accent text-sm">
-                                                <i class="fas fa-weight-hanging mr-1 text-xs"></i><?php echo e($item['weight']); ?>
+                                                <i class="fas fa-weight-hanging mr-1 text-xs"></i><?php echo !empty($item['flavour']) ? e($item['flavour']) . ' - ' : ''; ?><?php echo e($item['weight']); ?>
                                             </p>
                                         <?php endif; ?>
 
