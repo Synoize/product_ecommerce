@@ -178,3 +178,10 @@ document.getElementById('signupForm').addEventListener('submit', function(e) {
     return true;
 });
 </script>
+
+<script>
+    lucide.createIcons();
+</script>
+</body>
+
+</html>

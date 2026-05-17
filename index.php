@@ -124,7 +124,7 @@ try {
                     <!-- Fallback Images -->
                     <img src="<?php echo IMAGES_URL; ?>info_image/pkg1.png" class="pkg absolute max-h-full w-auto opacity-0 scale-75">
                     <img src="<?php echo IMAGES_URL; ?>info_image/pkg2.png" class="pkg absolute max-h-full w-auto opacity-0 scale-75">
-                    <img src="<?php echo IMAGES_URL; ?>info_image/pkg1.png" class="pkg absolute max-h-full w-auto opacity-0 scale-75">
+                    <img src="<?php echo IMAGES_URL; ?>info_image/pkg3.png" class="pkg absolute max-h-full w-auto opacity-0 scale-75">
 
                 <?php endif; ?>
             </div>
@@ -284,7 +284,7 @@ try {
         </div>
 
         <!-- Categories Container -->
-        <div class="flex gap-8 md:gap-20 overflow-x-auto 
+        <div class="flex gap-6 md:gap-16 overflow-x-auto 
                 justify-center md:justify-center 
                  [&::-webkit-scrollbar]:hidden 
             scrollbar-hide">

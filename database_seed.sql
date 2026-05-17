@@ -80,6 +80,7 @@ INSERT INTO `categories`
 )
 VALUES
 ('Snacks & Namkeen', 'snacks.png'),
+('Raw Organics', 'raw.png');
 ('Masala & Spices', 'spices.png');
 
 -- =========================================================

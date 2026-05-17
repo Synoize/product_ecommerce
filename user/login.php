@@ -110,3 +110,9 @@ require_once __DIR__ . '/../includes/header.php';
     </div>
 </div>
 
+<script>
+    lucide.createIcons();
+</script>
+</body>
+
+</html>
