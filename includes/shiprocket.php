@@ -120,6 +120,26 @@ function shiprocketNormalizeOrderStatus($status, $statusCode = null)
 {
     $normalized = strtoupper(trim((string)$status));
     $code = $statusCode !== null && $statusCode !== '' ? (int)$statusCode : null;
+    $definition = shiprocketStatusDefinition($status, $statusCode);
+
+    if ($definition) {
+        if (in_array($definition['stage'], ['delivered'], true)) {
+            return 'delivered';
+        }
+
+        if (
+            in_array($definition['stage'], ['cancelled', 'rto', 'rto_delivered'], true)
+            || in_array($definition['code'], [12, 24, 25, 44, 76], true)
+        ) {
+            return 'cancelled';
+        }
+
+        if (in_array($definition['stage'], ['picked_up', 'shipped', 'in_transit', 'out_for_delivery', 'exception'], true)) {
+            return 'shipped';
+        }
+
+        return 'processing';
+    }
 
     if ($code === 7 || strpos($normalized, 'DELIVERED') !== false) {
         return 'delivered';
@@ -129,14 +149,170 @@ function shiprocketNormalizeOrderStatus($status, $statusCode = null)
         return 'cancelled';
     }
 
-    if (in_array($code, [6, 17, 18, 19, 22, 27, 38, 42, 48], true)
-        || preg_match('/SHIPPED|TRANSIT|PICKED|PICKUP|OFD|DESTINATION|WAREHOUSE/', $normalized)) {
+    if (
+        in_array($code, [6, 17, 18, 19, 22, 27, 38, 42, 48], true)
+        || preg_match('/SHIPPED|TRANSIT|PICKED|PICKUP|OFD|DESTINATION|WAREHOUSE/', $normalized)
+    ) {
         return 'shipped';
     }
 
-    if (in_array($code, [1, 2, 3, 4, 5, 11, 13, 15, 20, 21], true)
-        || preg_match('/AWB|LABEL|MANIFEST|PENDING|PROCESS|PICKUP|UNDELIVERED|EXCEPTION/', $normalized)) {
+    if (
+        in_array($code, [1, 2, 3, 4, 5, 11, 13, 15, 20, 21], true)
+        || preg_match('/AWB|LABEL|MANIFEST|PENDING|PROCESS|PICKUP|UNDELIVERED|EXCEPTION/', $normalized)
+    ) {
         return 'processing';
+    }
+
+    return null;
+}
+
+function shiprocketStatusCatalog()
+{
+    return [
+        1 => ['label' => 'AWB Assigned', 'stage' => 'awb_assigned', 'tone' => 'progress'],
+        2 => ['label' => 'Label Generated', 'stage' => 'awb_assigned', 'tone' => 'progress'],
+        3 => ['label' => 'Pickup Scheduled', 'stage' => 'pickup_scheduled', 'tone' => 'progress'],
+        4 => ['label' => 'Pickup Queued', 'stage' => 'pickup_scheduled', 'tone' => 'progress'],
+        5 => ['label' => 'Manifest Generated', 'stage' => 'pickup_scheduled', 'tone' => 'progress'],
+        6 => ['label' => 'Shipped', 'stage' => 'shipped', 'tone' => 'progress'],
+        7 => ['label' => 'Delivered', 'stage' => 'delivered', 'tone' => 'success'],
+        8 => ['label' => 'Cancelled', 'stage' => 'cancelled', 'tone' => 'danger'],
+        9 => ['label' => 'RTO Initiated', 'stage' => 'rto', 'tone' => 'danger'],
+        10 => ['label' => 'RTO Delivered', 'stage' => 'rto_delivered', 'tone' => 'danger'],
+        11 => ['label' => 'Pending', 'stage' => 'processing', 'tone' => 'warning'],
+        12 => ['label' => 'Lost', 'stage' => 'exception', 'tone' => 'danger'],
+        13 => ['label' => 'Pickup Error', 'stage' => 'exception', 'tone' => 'danger'],
+        14 => ['label' => 'RTO Acknowledged', 'stage' => 'rto', 'tone' => 'danger'],
+        15 => ['label' => 'Pickup Rescheduled', 'stage' => 'pickup_scheduled', 'tone' => 'warning'],
+        16 => ['label' => 'Cancellation Requested', 'stage' => 'cancelled', 'tone' => 'danger'],
+        17 => ['label' => 'Out For Delivery', 'stage' => 'out_for_delivery', 'tone' => 'progress'],
+        18 => ['label' => 'In Transit', 'stage' => 'in_transit', 'tone' => 'progress'],
+        19 => ['label' => 'Out For Pickup', 'stage' => 'pickup_scheduled', 'tone' => 'progress'],
+        20 => ['label' => 'Pickup Exception', 'stage' => 'exception', 'tone' => 'danger'],
+        21 => ['label' => 'Undelivered', 'stage' => 'exception', 'tone' => 'danger'],
+        22 => ['label' => 'Delayed', 'stage' => 'in_transit', 'tone' => 'warning'],
+        23 => ['label' => 'Partial Delivered', 'stage' => 'delivered', 'tone' => 'warning'],
+        24 => ['label' => 'Destroyed', 'stage' => 'exception', 'tone' => 'danger'],
+        25 => ['label' => 'Damaged', 'stage' => 'exception', 'tone' => 'danger'],
+        26 => ['label' => 'Fulfilled', 'stage' => 'delivered', 'tone' => 'success'],
+        27 => ['label' => 'Pickup Booked', 'stage' => 'pickup_scheduled', 'tone' => 'progress'],
+        38 => ['label' => 'Reached at Destination Hub', 'stage' => 'in_transit', 'tone' => 'progress'],
+        39 => ['label' => 'Misrouted', 'stage' => 'exception', 'tone' => 'danger'],
+        40 => ['label' => 'RTO NDR', 'stage' => 'rto', 'tone' => 'danger'],
+        41 => ['label' => 'RTO Out For Delivery', 'stage' => 'rto', 'tone' => 'danger'],
+        42 => ['label' => 'Picked Up', 'stage' => 'picked_up', 'tone' => 'progress'],
+        43 => ['label' => 'Self Fulfilled', 'stage' => 'delivered', 'tone' => 'success'],
+        44 => ['label' => 'Disposed Off', 'stage' => 'exception', 'tone' => 'danger'],
+        45 => ['label' => 'Cancelled Before Dispatched', 'stage' => 'cancelled', 'tone' => 'danger'],
+        46 => ['label' => 'RTO In Transit', 'stage' => 'rto', 'tone' => 'danger'],
+        47 => ['label' => 'QC Failed', 'stage' => 'exception', 'tone' => 'danger'],
+        48 => ['label' => 'Reached Warehouse', 'stage' => 'in_transit', 'tone' => 'progress'],
+        49 => ['label' => 'Custom Cleared', 'stage' => 'in_transit', 'tone' => 'progress'],
+        50 => ['label' => 'In Flight', 'stage' => 'in_transit', 'tone' => 'progress'],
+        51 => ['label' => 'Handover to Courier', 'stage' => 'shipped', 'tone' => 'progress'],
+        52 => ['label' => 'Shipment Booked', 'stage' => 'awb_assigned', 'tone' => 'progress'],
+        54 => ['label' => 'In Transit Overseas', 'stage' => 'in_transit', 'tone' => 'progress'],
+        55 => ['label' => 'Connection Aligned', 'stage' => 'in_transit', 'tone' => 'progress'],
+        56 => ['label' => 'Reached Overseas Warehouse', 'stage' => 'in_transit', 'tone' => 'progress'],
+        57 => ['label' => 'Custom Cleared Overseas', 'stage' => 'in_transit', 'tone' => 'progress'],
+        59 => ['label' => 'Box Packing', 'stage' => 'processing', 'tone' => 'progress'],
+        60 => ['label' => 'FC Allocated', 'stage' => 'processing', 'tone' => 'progress'],
+        61 => ['label' => 'Picklist Generated', 'stage' => 'processing', 'tone' => 'progress'],
+        62 => ['label' => 'Ready To Pack', 'stage' => 'processing', 'tone' => 'progress'],
+        63 => ['label' => 'Packed', 'stage' => 'processing', 'tone' => 'progress'],
+        67 => ['label' => 'FC Manifest Generated', 'stage' => 'pickup_scheduled', 'tone' => 'progress'],
+        68 => ['label' => 'Processed at Warehouse', 'stage' => 'processing', 'tone' => 'progress'],
+        71 => ['label' => 'Handover Exception', 'stage' => 'exception', 'tone' => 'danger'],
+        72 => ['label' => 'Packed Exception', 'stage' => 'exception', 'tone' => 'danger'],
+        75 => ['label' => 'RTO Lock', 'stage' => 'rto', 'tone' => 'danger'],
+        76 => ['label' => 'Untraceable', 'stage' => 'exception', 'tone' => 'danger'],
+        77 => ['label' => 'Issue Related to the Recipient', 'stage' => 'exception', 'tone' => 'danger'],
+        78 => ['label' => 'Reached Back at Seller City', 'stage' => 'rto', 'tone' => 'danger'],
+        79 => ['label' => 'Rider Assigned', 'stage' => 'out_for_delivery', 'tone' => 'progress'],
+        80 => ['label' => 'Rider Unassigned', 'stage' => 'exception', 'tone' => 'warning'],
+        81 => ['label' => 'Rider Assigned', 'stage' => 'out_for_delivery', 'tone' => 'progress'],
+        82 => ['label' => 'Rider Reached at Drop', 'stage' => 'out_for_delivery', 'tone' => 'progress'],
+        83 => ['label' => 'Searching for Rider', 'stage' => 'out_for_delivery', 'tone' => 'warning'],
+    ];
+}
+
+function shiprocketProgressStages($audience = 'admin')
+{
+    if ($audience === 'customer') {
+        return [
+            ['key' => 'processing', 'label' => 'Processing', 'icon' => 'fas fa-clipboard-list'],
+            ['key' => 'shipped', 'label' => 'Shipped', 'icon' => 'fas fa-box'],
+            ['key' => 'in_transit', 'label' => 'In Transit', 'icon' => 'fas fa-truck-fast'],
+            ['key' => 'out_for_delivery', 'label' => 'Out For Delivery', 'icon' => 'fas fa-location-dot'],
+            ['key' => 'delivered', 'label' => 'Delivered', 'icon' => 'fas fa-house'],
+        ];
+    }
+
+    return [
+        ['key' => 'processing', 'label' => 'Processing', 'icon' => 'fas fa-clipboard-list'],
+        ['key' => 'awb_assigned', 'label' => 'AWB Assigned', 'icon' => 'fas fa-barcode'],
+        ['key' => 'pickup_scheduled', 'label' => 'Pickup', 'icon' => 'fas fa-calendar-check'],
+        ['key' => 'picked_up', 'label' => 'Picked Up', 'icon' => 'fas fa-box-open'],
+        ['key' => 'shipped', 'label' => 'Shipped', 'icon' => 'fas fa-box'],
+        ['key' => 'in_transit', 'label' => 'In Transit', 'icon' => 'fas fa-truck-fast'],
+        ['key' => 'out_for_delivery', 'label' => 'Out For Delivery', 'icon' => 'fas fa-location-dot'],
+        ['key' => 'delivered', 'label' => 'Delivered', 'icon' => 'fas fa-house'],
+    ];
+}
+
+function shiprocketCustomerStage($stage)
+{
+    if (in_array($stage, ['awb_assigned', 'pickup_scheduled'], true)) {
+        return 'processing';
+    }
+
+    if (in_array($stage, ['picked_up'], true)) {
+        return 'shipped';
+    }
+
+    return $stage;
+}
+
+function shiprocketCustomerStatusInfo(array $order)
+{
+    $progress = shiprocketOrderProgressInfo($order, 'customer');
+    $stageLabels = array_column($progress['steps'], 'label', 'key');
+    $statusInfo = $progress['status'];
+
+    if ($statusInfo['source'] === 'Shiprocket' && in_array($statusInfo['shiprocket_stage'], ['awb_assigned', 'pickup_scheduled'], true)) {
+        $statusInfo['label'] = 'Processing';
+    } elseif ($statusInfo['source'] === 'Shiprocket' && $statusInfo['shiprocket_stage'] === 'picked_up') {
+        $statusInfo['label'] = 'Shipped';
+    } elseif (isset($stageLabels[$progress['stage']]) && !$progress['is_exception'] && !$progress['is_cancelled']) {
+        $statusInfo['label'] = $stageLabels[$progress['stage']];
+    }
+
+    return $statusInfo;
+}
+
+function shiprocketNormalizeStatusText($status)
+{
+    return preg_replace('/[^A-Z0-9]+/', '', strtoupper(trim((string)$status)));
+}
+
+function shiprocketStatusDefinition($status, $statusCode = null)
+{
+    $catalog = shiprocketStatusCatalog();
+    $code = $statusCode !== null && $statusCode !== '' ? (int)$statusCode : null;
+
+    if ($code !== null && isset($catalog[$code])) {
+        return $catalog[$code] + ['code' => $code];
+    }
+
+    $normalizedStatus = shiprocketNormalizeStatusText($status);
+    if ($normalizedStatus === '') {
+        return null;
+    }
+
+    foreach ($catalog as $catalogCode => $definition) {
+        if (shiprocketNormalizeStatusText($definition['label']) === $normalizedStatus) {
+            return $definition + ['code' => $catalogCode];
+        }
     }
 
     return null;
@@ -146,16 +322,22 @@ function shiprocketOrderStatusInfo(array $order)
 {
     $normalizedStatus = $order['status'] ?? 'pending';
     $carrierStatus = trim((string)($order['shiprocket_status'] ?? ''));
+    $statusCode = ($order['shiprocket_status_code'] ?? '') !== '' ? (int)$order['shiprocket_status_code'] : null;
+    $definition = shiprocketStatusDefinition($carrierStatus, $statusCode);
+    $label = $carrierStatus !== '' ? $carrierStatus : ($definition['label'] ?? ucfirst($normalizedStatus ?: 'pending'));
 
     return [
-        'label' => $carrierStatus !== '' ? $carrierStatus : ucfirst($normalizedStatus ?: 'pending'),
+        'label' => $label,
         'normalized' => $normalizedStatus ?: 'pending',
-        'source' => $carrierStatus !== '' ? 'Shiprocket' : 'System',
-        'has_carrier_status' => $carrierStatus !== '',
+        'source' => ($carrierStatus !== '' || $definition) ? 'Shiprocket' : 'System',
+        'has_carrier_status' => $carrierStatus !== '' || $definition !== null,
+        'shiprocket_code' => $definition['code'] ?? $statusCode,
+        'shiprocket_stage' => $definition['stage'] ?? null,
+        'tone' => $definition['tone'] ?? 'progress',
     ];
 }
 
-function shiprocketOrderProgressInfo(array $order)
+function shiprocketOrderProgressInfo(array $order, $audience = 'admin')
 {
     $statusInfo = shiprocketOrderStatusInfo($order);
     $carrierStatus = strtoupper(trim((string)($order['shiprocket_status'] ?? '')));
@@ -163,25 +345,41 @@ function shiprocketOrderProgressInfo(array $order)
     $normalizedStatus = $statusInfo['normalized'];
     $hasShipment = !empty($order['shiprocket_shipment_id']) || !empty($order['shiprocket_awb_code']);
 
-    $stage = 'processing';
-    if ($normalizedStatus === 'cancelled' || in_array($statusCode, [8, 16, 45], true) || strpos($carrierStatus, 'CANCEL') !== false) {
-        $stage = 'cancelled';
-    } elseif ($normalizedStatus === 'delivered' || $statusCode === 7 || strpos($carrierStatus, 'DELIVERED') !== false) {
-        $stage = 'delivered';
-    } elseif (preg_match('/IN TRANSIT|TRANSIT|OUT FOR DELIVERY|OFD|PICKED UP|INSCAN|REACHED|DESTINATION|WAREHOUSE/', $carrierStatus)) {
-        $stage = 'in_transit';
-    } elseif ($normalizedStatus === 'shipped' || $hasShipment || preg_match('/SHIPPED|AWB|LABEL|MANIFEST|PICKUP/', $carrierStatus)) {
-        $stage = 'shipped';
+    $stage = $statusInfo['shiprocket_stage'] ?? 'processing';
+    if (!$statusInfo['shiprocket_stage']) {
+        if ($normalizedStatus === 'cancelled' || in_array($statusCode, [8, 16, 45], true) || strpos($carrierStatus, 'CANCEL') !== false) {
+            $stage = 'cancelled';
+        } elseif ($normalizedStatus === 'delivered' || $statusCode === 7 || strpos($carrierStatus, 'DELIVERED') !== false) {
+            $stage = 'delivered';
+        } elseif (preg_match('/OUT FOR DELIVERY|OFD|RIDER/', $carrierStatus)) {
+            $stage = 'out_for_delivery';
+        } elseif (preg_match('/IN TRANSIT|TRANSIT|INSCAN|REACHED|DESTINATION|WAREHOUSE|IN FLIGHT|CUSTOM CLEARED/', $carrierStatus)) {
+            $stage = 'in_transit';
+        } elseif (preg_match('/PICKED UP/', $carrierStatus)) {
+            $stage = 'picked_up';
+        } elseif ($normalizedStatus === 'shipped' || preg_match('/SHIPPED|HANDOVER/', $carrierStatus)) {
+            $stage = 'shipped';
+        } elseif ($hasShipment || preg_match('/AWB|LABEL|MANIFEST|PICKUP|BOOKED/', $carrierStatus)) {
+            $stage = 'awb_assigned';
+        }
     }
 
-    $steps = [
-        ['key' => 'processing', 'label' => 'Processing', 'icon' => 'fas fa-clipboard-list'],
-        ['key' => 'shipped', 'label' => 'Shipped', 'icon' => 'fas fa-box'],
-        ['key' => 'in_transit', 'label' => 'In Transit', 'icon' => 'fas fa-truck-fast'],
-        ['key' => 'delivered', 'label' => 'Delivered', 'icon' => 'fas fa-house'],
+    if ($audience === 'customer') {
+        $stage = shiprocketCustomerStage($stage);
+    }
+
+    $steps = shiprocketProgressStages($audience);
+    $stageIndex = array_flip(array_column($steps, 'key'));
+    $specialStageIndex = [
+        'cancelled' => 0,
+        'exception' => min(5, count($steps) - 1),
+        'rto' => min(5, count($steps) - 1),
+        'rto_delivered' => min(5, count($steps) - 1),
     ];
-    $stageIndex = ['processing' => 0, 'shipped' => 1, 'in_transit' => 2, 'delivered' => 3];
     $currentIndex = $stageIndex[$stage] ?? 0;
+    if (!isset($stageIndex[$stage]) && isset($specialStageIndex[$stage])) {
+        $currentIndex = $specialStageIndex[$stage];
+    }
 
     return [
         'stage' => $stage,
@@ -189,23 +387,32 @@ function shiprocketOrderProgressInfo(array $order)
         'steps' => $steps,
         'status' => $statusInfo,
         'is_cancelled' => $stage === 'cancelled',
+        'is_exception' => in_array($stage, ['exception', 'rto', 'rto_delivered'], true),
     ];
 }
 
-function renderShiprocketProgressTracker(array $order)
+function renderShiprocketProgressTracker(array $order, $audience = 'admin')
 {
-    $progress = shiprocketOrderProgressInfo($order);
+    $progress = shiprocketOrderProgressInfo($order, $audience);
     $statusInfo = $progress['status'];
+    if ($audience === 'customer') {
+        $statusInfo = shiprocketCustomerStatusInfo($order);
+    }
     $steps = $progress['steps'];
     $currentIndex = $progress['current_index'];
     $isCancelled = $progress['is_cancelled'];
+    $isException = $progress['is_exception'];
+    $tone = $statusInfo['tone'];
+    $statusTextClass = $tone === 'danger'
+        ? 'text-red-700'
+        : ($tone === 'warning' ? 'text-yellow-700' : 'text-gray-900');
     ob_start();
-    ?>
+?>
     <div class="w-full">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-5">
+        <!-- <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-5">
             <div>
-                <div class="text-sm text-gray-500">Real carrier status</div>
-                <div class="text-lg font-semibold <?php echo $isCancelled ? 'text-red-700' : 'text-gray-900'; ?>">
+                <div class="text-sm text-gray-500">Order Status</div>
+                <div class="text-lg font-semibold <?php echo $statusTextClass; ?>">
                     <?php echo e($statusInfo['label']); ?>
                 </div>
             </div>
@@ -215,46 +422,88 @@ function renderShiprocketProgressTracker(array $order)
                     <span class="block sm:text-right">Updated <?php echo date('M d, Y H:i', strtotime($order['shiprocket_synced_at'])); ?></span>
                 <?php endif; ?>
             </div>
-        </div>
+        </div> -->
 
         <?php if ($isCancelled): ?>
             <div class="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">
                 <i class="fas fa-circle-xmark mr-2"></i>This order is cancelled.
             </div>
+        <?php elseif ($isException): ?>
+            <div class="mb-4 rounded-lg border border-yellow-200 bg-yellow-50 p-3 text-sm font-medium text-yellow-800">
+                <i class="fas fa-triangle-exclamation mr-2"></i>Shipment needs attention: <?php echo e($statusInfo['label']); ?>.
+            </div>
         <?php endif; ?>
 
-        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 sm:gap-3">
-            <?php foreach ($steps as $index => $step):
-                $done = !$isCancelled && $index < $currentIndex;
-                $active = !$isCancelled && $index === $currentIndex;
-                $circleClass = ($done || $active)
-                    ? 'bg-green-500 text-white border-green-500'
-                    : 'bg-gray-100 text-gray-400 border-gray-300';
-                $labelClass = ($done || $active) ? 'text-green-700' : 'text-gray-500';
-                $lineClass = (!$isCancelled && $index < $currentIndex) ? 'bg-green-500' : 'bg-gray-300';
-            ?>
-                <div class="relative flex sm:flex-col items-center sm:items-center gap-3 sm:gap-2">
-                    <?php if ($index < count($steps) - 1): ?>
-                        <div class="hidden sm:block absolute left-1/2 top-8 h-1 w-full <?php echo $lineClass; ?>"></div>
-                    <?php endif; ?>
-                    <div class="relative z-10 flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 <?php echo $circleClass; ?>">
-                        <i class="<?php echo e($step['icon']); ?> text-2xl"></i>
-                    </div>
-                    <div class="min-w-0 sm:text-center">
-                        <div class="text-sm font-semibold <?php echo $labelClass; ?>"><?php echo e($step['label']); ?></div>
-                        <?php if ($active): ?>
-                            <div class="text-xs text-gray-500">Current</div>
-                        <?php elseif ($done): ?>
-                            <div class="text-xs text-gray-500">Done</div>
-                        <?php else: ?>
-                            <div class="text-xs text-gray-400">Pending</div>
+       <div class="overflow-x-auto pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            <div class="flex <?php echo $audience === 'customer' ? 'min-w-[380px]' : 'min-w-[880px]'; ?> items-start">
+                <?php foreach ($steps as $index => $step):
+                    $done = !$isCancelled && $index < $currentIndex;
+                    $active = !$isCancelled && $index === $currentIndex;
+                    if ($done) {
+                        $circleClass = 'bg-green-500 text-white border-green-500';
+                        $labelClass = 'text-green-700';
+                    } elseif ($active && $isException) {
+                        $circleClass = $tone === 'danger'
+                            ? 'bg-red-500 text-white border-red-500'
+                            : 'bg-yellow-500 text-white border-yellow-500';
+                        $labelClass = $tone === 'danger' ? 'text-red-700' : 'text-yellow-700';
+                    } elseif ($active) {
+                        $circleClass = 'bg-green-500 text-white border-green-500';
+                        $labelClass = 'text-green-700';
+                    } else {
+                        $circleClass = 'bg-white text-gray-400 border-gray-300';
+                        $labelClass = 'text-gray-500';
+                    }
+                    $lineClass = (!$isCancelled && $index < $currentIndex) ? 'bg-green-500' : 'bg-gray-300';
+                ?>
+                    <div class="relative flex flex-1 flex-col items-center text-center">
+
+                        <!-- LINE -->
+                        <?php if ($index < count($steps) - 1): ?>
+                            <div class="absolute top-5 md:top-8 left-1/2 w-full h-[3px] <?php echo $lineClass; ?> rounded-full"></div>
                         <?php endif; ?>
+
+                        <!-- ICON -->
+                        <div class="relative z-10 flex h-10 w-10 md:h-16 md:w-16 items-center justify-center rounded-full border-2 transition-all duration-300 shadow-md
+        <?php echo $circleClass; ?>">
+
+                            <!-- Glow Effect -->
+                            <div class="absolute inset-0 rounded-full blur-md opacity-20 <?php echo $circleClass; ?>"></div>
+
+                            <i class="<?php echo e($step['icon']); ?> text-sm md:text-xl relative z-10"></i>
+                        </div>
+
+                        <!-- CONTENT -->
+                        <div class="mt-3 flex flex-col items-center">
+
+                            <!-- LABEL -->
+                            <h4 class="text-[11px] md:text-sm font-semibold tracking-wide <?php echo $labelClass; ?>">
+                                <?php echo e($step['label']); ?>
+                            </h4>
+
+                            <!-- STATUS -->
+                            <?php if ($active): ?>
+                                <span class="mt-1 rounded-full bg-green-100 px-3 py-1 text-[10px] md:text-xs font-medium text-green-600">
+                                    Current
+                                </span>
+
+                            <?php elseif ($done): ?>
+                                <span class="mt-1 rounded-full bg-green-100 px-3 py-1 text-[10px] md:text-xs font-medium text-green-600">
+                                    Completed
+                                </span>
+
+                            <?php else: ?>
+                                <span class="mt-1 rounded-full bg-gray-100 px-3 py-1 text-[10px] md:text-xs font-medium text-gray-500">
+                                    Pending
+                                </span>
+                            <?php endif; ?>
+                        </div>
                     </div>
-                </div>
-            <?php endforeach; ?>
+                <?php endforeach; ?>
+            </div>
         </div>
     </div>
-    <?php
+<?php
     return ob_get_clean();
 }
 

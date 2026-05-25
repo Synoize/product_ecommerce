@@ -49,7 +49,7 @@ foreach ($orders as $order) {
 
             <!-- Orders List -->
             <div class="md:col-span-3">
-                <div class="bg-white md:border md:rounded-lg md:shadow-sm md:p-8">
+                <div class="bg-white md:border md:rounded-lg md:shadow-sm md:p-8 min-h-[560px]">
                     <h4 class="text-2xl font-bold text-gray-900 mb-6">My Orders</h4>
 
                     <?php if (empty($orders)): ?>
@@ -71,7 +71,7 @@ foreach ($orders as $order) {
                                     'delivered' => 'bg-green-100 text-green-700',
                                     'cancelled' => 'bg-red-100 text-red-700'
                                 ];
-                                $statusInfo = shiprocketOrderStatusInfo($order);
+                                $statusInfo = shiprocketCustomerStatusInfo($order);
                                 $statusClass = $statusColors[$statusInfo['normalized']] ?? 'bg-gray-100 text-gray-700';
                             ?>
                                 <div class="border border-gray-200 rounded-xl overflow-hidden">
@@ -251,33 +251,23 @@ foreach ($orders as $order) {
                                                 ? 'https://shiprocket.co/tracking/' . rawurlencode($order['shiprocket_awb_code'])
                                                 : '');
                                         ?>
-                                        <div class="mt-6 rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm">
-                                            <h6 class="font-bold text-gray-900 mb-3">Shipping Tracking</h6>
-                                            <div class="mb-5 rounded-lg border border-gray-200 bg-white p-4">
-                                                <?php echo renderShiprocketProgressTracker($order); ?>
+                                        <div class="mt-6 md:rounded-lg md:border md:border-gray-200 md:bg-gray-50 md:p-8 text-sm">
+                                            <h6 class="font-bold text-gray-900 mb-5">Order Tracking</h6>
+                                            <div class="mb-2 md:mb-6">
+                                                <?php echo renderShiprocketProgressTracker($order, 'customer'); ?>
                                             </div>
-                                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                            <div class="flex justify-between items-center gap-3">
                                                 <div>
-                                                    <span class="block text-gray-500 text-xs">Carrier Status</span>
+                                                    <span class="block text-gray-500 text-xs">Order Status</span>
                                                     <span class="font-medium text-gray-900"><?php echo e($statusInfo['label']); ?></span>
                                                 </div>
-                                                <div>
-                                                    <span class="block text-gray-500 text-xs">Courier</span>
-                                                    <span class="font-medium text-gray-900"><?php echo e($order['shiprocket_courier_name'] ?: 'Pending'); ?></span>
-                                                </div>
-                                                <div>
-                                                    <span class="block text-gray-500 text-xs">AWB</span>
-                                                    <span class="font-medium text-gray-900"><?php echo e($order['shiprocket_awb_code'] ?: 'Pending'); ?></span>
-                                                </div>
-                                            </div>
-                                            <div class="mt-3 flex flex-wrap gap-4">
                                                 <?php if (!empty($trackingUrl)): ?>
                                                     <a href="<?php echo e($trackingUrl); ?>" target="_blank" rel="noopener" class="text-primary-600 hover:text-primary-700 font-medium">
                                                         <i class="fas fa-location-dot mr-1"></i>Track shipment
                                                     </a>
                                                 <?php endif; ?>
                                                 <?php if (!empty($order['shiprocket_synced_at'])): ?>
-                                                    <span class="text-gray-500">Updated <?php echo date('M d, Y H:i', strtotime($order['shiprocket_synced_at'])); ?></span>
+                                                    <span class="text-gray-500 text-xs">Updated <?php echo date('M d, Y H:i', strtotime($order['shiprocket_synced_at'])); ?></span>
                                                 <?php endif; ?>
                                             </div>
                                         </div>
