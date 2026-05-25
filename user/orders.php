@@ -7,11 +7,13 @@
 
 $pageTitle = 'My Orders';
 require_once __DIR__ . '/../includes/header.php';
+require_once __DIR__ . '/../includes/shiprocket.php';
 
 // Require login
 requireLogin();
 
 $userId = $_SESSION['user_id'];
+shiprocketEnsureSchema($pdo);
 
 // Fetch user's orders
 try {
@@ -69,7 +71,8 @@ foreach ($orders as $order) {
                                     'delivered' => 'bg-green-100 text-green-700',
                                     'cancelled' => 'bg-red-100 text-red-700'
                                 ];
-                                $statusClass = $statusColors[$order['status']] ?? 'bg-gray-100 text-gray-700';
+                                $statusInfo = shiprocketOrderStatusInfo($order);
+                                $statusClass = $statusColors[$statusInfo['normalized']] ?? 'bg-gray-100 text-gray-700';
                             ?>
                                 <div class="border border-gray-200 rounded-xl overflow-hidden">
                                     <button
@@ -91,7 +94,7 @@ foreach ($orders as $order) {
                                         <div class="flex flex-wrap items-center gap-3">
 
                                             <span class="px-3 py-1 rounded-full text-xs font-medium <?php echo $statusClass; ?>">
-                                                <?php echo ucfirst($order['status']); ?>
+                                                <?php echo e($statusInfo['label']); ?>
                                             </span>
 
                                             <span class="font-bold text-green-500 text-sm md:text-base">
@@ -237,6 +240,44 @@ foreach ($orders as $order) {
 
                                                 <?php if ($order['coupon_code']): ?>
                                                     <p class="text-gray-600 text-sm mt-3">Coupon: <span class="inline-block bg-primary-100 text-primary-700 px-2 py-1 rounded text-xs font-medium"><?php echo e($order['coupon_code']); ?></span></p>
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+
+                                        <?php
+                                        $trackingUrl = !empty($order['shiprocket_tracking_url'])
+                                            ? $order['shiprocket_tracking_url']
+                                            : (!empty($order['shiprocket_awb_code'])
+                                                ? 'https://shiprocket.co/tracking/' . rawurlencode($order['shiprocket_awb_code'])
+                                                : '');
+                                        ?>
+                                        <div class="mt-6 rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm">
+                                            <h6 class="font-bold text-gray-900 mb-3">Shipping Tracking</h6>
+                                            <div class="mb-5 rounded-lg border border-gray-200 bg-white p-4">
+                                                <?php echo renderShiprocketProgressTracker($order); ?>
+                                            </div>
+                                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                                <div>
+                                                    <span class="block text-gray-500 text-xs">Carrier Status</span>
+                                                    <span class="font-medium text-gray-900"><?php echo e($statusInfo['label']); ?></span>
+                                                </div>
+                                                <div>
+                                                    <span class="block text-gray-500 text-xs">Courier</span>
+                                                    <span class="font-medium text-gray-900"><?php echo e($order['shiprocket_courier_name'] ?: 'Pending'); ?></span>
+                                                </div>
+                                                <div>
+                                                    <span class="block text-gray-500 text-xs">AWB</span>
+                                                    <span class="font-medium text-gray-900"><?php echo e($order['shiprocket_awb_code'] ?: 'Pending'); ?></span>
+                                                </div>
+                                            </div>
+                                            <div class="mt-3 flex flex-wrap gap-4">
+                                                <?php if (!empty($trackingUrl)): ?>
+                                                    <a href="<?php echo e($trackingUrl); ?>" target="_blank" rel="noopener" class="text-primary-600 hover:text-primary-700 font-medium">
+                                                        <i class="fas fa-location-dot mr-1"></i>Track shipment
+                                                    </a>
+                                                <?php endif; ?>
+                                                <?php if (!empty($order['shiprocket_synced_at'])): ?>
+                                                    <span class="text-gray-500">Updated <?php echo date('M d, Y H:i', strtotime($order['shiprocket_synced_at'])); ?></span>
                                                 <?php endif; ?>
                                             </div>
                                         </div>

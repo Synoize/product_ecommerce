@@ -5,26 +5,10 @@
 
 $pageTitle = 'Manage Orders';
 require_once __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/../includes/shiprocket.php';
 requireAdmin();
 
-// Handle status update
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
-    $orderId = (int)$_POST['order_id'];
-    $status = isset($_POST['status']) ? $_POST['status'] : '';
-    $allowedStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
-    
-    if (in_array($status, $allowedStatuses)) {
-        try {
-            $stmt = $pdo->prepare("UPDATE orders SET status = ? WHERE id = ?");
-            $stmt->execute([$status, $orderId]);
-            setFlash('Order status updated!', 'success');
-        } catch (PDOException $e) {
-            setFlash('Error updating order status', 'danger');
-        }
-    }
-    
-    redirect(BASE_URL . 'admin/manage_orders.php');
-}
+shiprocketEnsureSchema($pdo);
 
 // Get filter parameters
 $statusFilter = isset($_GET['status']) ? $_GET['status'] : '';
@@ -109,6 +93,7 @@ $orders = $stmt->fetchAll();
                                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Customer</th>
                                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Total</th>
                                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Shipping</th>
                                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Payment</th>
                                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Date</th>
                                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Actions</th>
@@ -123,7 +108,8 @@ $orders = $stmt->fetchAll();
                                     'delivered' => 'bg-green-100 text-green-700',
                                     'cancelled' => 'bg-red-100 text-red-700'
                                 ];
-                                $statusClass = $statusColors[$order['status']] ?? 'bg-gray-100 text-gray-700';
+                                $statusInfo = shiprocketOrderStatusInfo($order);
+                                $statusClass = $statusColors[$statusInfo['normalized']] ?? 'bg-gray-100 text-gray-700';
                                 $paymentStatus = $order['payment_status'] ?? 'pending';
                                 $paymentStatusClass = $paymentStatus === 'paid'
                                     ? 'bg-green-100 text-green-700'
@@ -138,8 +124,21 @@ $orders = $stmt->fetchAll();
                                 <td class="px-4 py-3 text-sm font-medium"><?php echo formatCurrency($order['total_amount']); ?></td>
                                 <td class="px-4 py-3">
                                     <span class="inline-block px-2 py-1 rounded text-xs font-medium <?php echo $statusClass; ?>">
-                                        <?php echo ucfirst($order['status']); ?>
+                                        <?php echo e($statusInfo['label']); ?>
                                     </span>
+                                    <div class="text-xs text-gray-500 mt-1"><?php echo e($statusInfo['source']); ?></div>
+                                </td>
+                                <td class="px-4 py-3 text-sm">
+                                    <?php if (!empty($order['shiprocket_awb_code']) || !empty($order['shiprocket_status'])): ?>
+                                        <div class="font-medium text-gray-900"><?php echo e($order['shiprocket_status'] ?: 'AWB Assigned'); ?></div>
+                                        <?php if (!empty($order['shiprocket_awb_code'])): ?>
+                                            <div class="text-xs text-gray-500 mt-1">AWB: <?php echo e($order['shiprocket_awb_code']); ?></div>
+                                        <?php endif; ?>
+                                    <?php elseif (!empty($order['shiprocket_error'])): ?>
+                                        <span class="inline-block px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-700">Needs setup</span>
+                                    <?php else: ?>
+                                        <span class="text-xs text-gray-400">Not created</span>
+                                    <?php endif; ?>
                                 </td>
                                 <td class="px-4 py-3">
                                     <span class="inline-block px-2 py-1 rounded text-xs font-medium <?php echo $paymentStatusClass; ?>">
@@ -173,7 +172,7 @@ $orders = $stmt->fetchAll();
                             
                             <?php if (empty($orders)): ?>
                             <tr>
-                                <td colspan="7" class="px-4 py-8 text-center text-gray-500">No orders found</td>
+                                <td colspan="8" class="px-4 py-8 text-center text-gray-500">No orders found</td>
                             </tr>
                             <?php endif; ?>
                         </tbody>

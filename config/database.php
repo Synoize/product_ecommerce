@@ -33,6 +33,18 @@ define('PRODUCTS_PATH', IMAGES_PATH . 'products/');
 define('CATEGORIES_PATH', IMAGES_PATH . 'categories/');
 define('UPLOADS_PATH', IMAGES_PATH . 'uploads/');
 
+// Shiprocket Configuration
+// Fill these in with your Shiprocket API user credentials from the Shiprocket panel.
+define('SHIPROCKET_EMAIL', getenv('SHIPROCKET_EMAIL') ?: '');
+define('SHIPROCKET_PASSWORD', getenv('SHIPROCKET_PASSWORD') ?: '');
+define('SHIPROCKET_PICKUP_LOCATION', getenv('SHIPROCKET_PICKUP_LOCATION') ?: '');
+define('SHIPROCKET_CHANNEL_ID', getenv('SHIPROCKET_CHANNEL_ID') ?: '');
+define('SHIPROCKET_WEBHOOK_TOKEN', getenv('SHIPROCKET_WEBHOOK_TOKEN') ?: '');
+define('SHIPROCKET_DEFAULT_LENGTH', getenv('SHIPROCKET_DEFAULT_LENGTH') ?: 10);
+define('SHIPROCKET_DEFAULT_BREADTH', getenv('SHIPROCKET_DEFAULT_BREADTH') ?: 10);
+define('SHIPROCKET_DEFAULT_HEIGHT', getenv('SHIPROCKET_DEFAULT_HEIGHT') ?: 5);
+define('SHIPROCKET_DEFAULT_WEIGHT', getenv('SHIPROCKET_DEFAULT_WEIGHT') ?: 0.5);
+
 // Create database connection using PDO
 try {
     $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4";

@@ -122,6 +122,12 @@ Products support multiple images via a JSON gallery field. The main product page
 - Automatic order creation on successful payment
 - Stock decrement and cart clearing
 
+### Shiprocket Shipping
+- Automatic Shiprocket order creation after local order placement
+- AWB assignment and courier tracking fields on admin/user order screens
+- Webhook endpoint for live carrier status updates
+- Admin fallback buttons for Create Shipment and Sync Now
+
 ### Image Handling
 - Supports both external URLs (http/https) and local uploads
 - Automatic path resolution based on image source
@@ -157,6 +163,21 @@ Edit `includes/razorpay.php`:
 ```php
 define('RAZORPAY_KEY_ID', 'your_key_id');
 define('RAZORPAY_KEY_SECRET', 'your_key_secret');
+```
+
+### Shiprocket Credentials
+Edit `config/database.php` or set environment variables:
+```php
+SHIPROCKET_EMAIL
+SHIPROCKET_PASSWORD
+SHIPROCKET_PICKUP_LOCATION
+SHIPROCKET_CHANNEL_ID
+SHIPROCKET_WEBHOOK_TOKEN
+```
+
+Set this webhook URL in Shiprocket and send the token in the `x-api-key` header:
+```text
+http://your-domain/product_ecommerce/api/shipment_status_webhook.php
 ```
 
 ## Troubleshooting

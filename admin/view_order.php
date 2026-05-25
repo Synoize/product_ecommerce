@@ -6,6 +6,7 @@
 
 $pageTitle = 'Order Details';
 require_once __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/../includes/shiprocket.php';
 requireAdmin();
 
 // Get order ID
@@ -15,6 +16,8 @@ if ($orderId <= 0) {
     setFlash('Invalid order ID', 'danger');
     redirect(BASE_URL . 'admin/manage_orders.php');
 }
+
+shiprocketEnsureSchema($pdo);
 
 // Fetch order details
 try {
@@ -34,6 +37,21 @@ try {
     redirect(BASE_URL . 'admin/manage_orders.php');
 }
 
+// Handle Shiprocket actions
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['shiprocket_action'])) {
+    $action = $_POST['shiprocket_action'] ?? '';
+    $result = ['success' => false, 'message' => 'Invalid Shiprocket action.'];
+
+    if ($action === 'create') {
+        $result = shiprocketCreateShipmentForOrder($pdo, $orderId);
+    } elseif ($action === 'sync') {
+        $result = shiprocketSyncTrackingForOrder($pdo, $orderId);
+    }
+
+    setFlash($result['message'], $result['success'] ? 'success' : 'warning');
+    redirect(BASE_URL . 'admin/view_order.php?id=' . $orderId);
+}
+
 // Fetch order items
 try {
     $stmt = $pdo->prepare("SELECT oi.*, p.name as product_name, p.image as product_image 
@@ -46,30 +64,11 @@ try {
     $orderItems = [];
 }
 
-// Handle status update
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
-    $newStatus = $_POST['status'] ?? '';
-    $allowedStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
-
-    if (in_array($newStatus, $allowedStatuses)) {
-        try {
-            $stmt = $pdo->prepare("UPDATE orders SET status = ? WHERE id = ?");
-            $stmt->execute([$newStatus, $orderId]);
-
-            // Refresh order data
-            $stmt = $pdo->prepare("SELECT o.*, u.name as user_name, u.email as user_email, u.mobile as user_mobile 
-                                  FROM orders o 
-                                  JOIN users u ON o.user_id = u.id 
-                                  WHERE o.id = ?");
-            $stmt->execute([$orderId]);
-            $order = $stmt->fetch();
-
-            setFlash('Order status updated successfully!', 'success');
-        } catch (PDOException $e) {
-            setFlash('Error updating order status', 'danger');
-        }
-    }
-}
+$trackingUrl = !empty($order['shiprocket_tracking_url'])
+    ? $order['shiprocket_tracking_url']
+    : (!empty($order['shiprocket_awb_code'])
+        ? 'https://shiprocket.co/tracking/' . rawurlencode($order['shiprocket_awb_code'])
+        : '');
 ?>
 
 <div class="bg-white mt-20">
@@ -92,31 +91,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
                     <!-- Order Status -->
                     <div class="bg-white rounded-xl shadow-md p-6">
                         <h5 class="font-bold text-gray-900 mb-4">Order Status</h5>
-                        <?php
-                        $statusColors = [
-                            'pending' => 'bg-yellow-100 text-yellow-700',
-                            'processing' => 'bg-blue-100 text-blue-700',
-                            'shipped' => 'bg-purple-100 text-purple-700',
-                            'delivered' => 'bg-green-100 text-green-700',
-                            'cancelled' => 'bg-red-100 text-red-700'
-                        ];
-                        $currentStatusClass = $statusColors[$order['status']] ?? 'bg-gray-100 text-gray-700';
-                        ?>
-                        <form action="<?php echo BASE_URL; ?>admin/view_order.php?id=<?php echo $orderId; ?>" method="POST" class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                            <span class="inline-block px-3 py-1 rounded-lg text-sm font-medium <?php echo $currentStatusClass; ?>">
-                                <?php echo ucfirst($order['status']); ?>
-                            </span>
-                            <select name="status" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
-                                <option value="pending" <?php echo $order['status'] === 'pending' ? 'selected' : ''; ?>>Pending</option>
-                                <option value="processing" <?php echo $order['status'] === 'processing' ? 'selected' : ''; ?>>Processing</option>
-                                <option value="shipped" <?php echo $order['status'] === 'shipped' ? 'selected' : ''; ?>>Shipped</option>
-                                <option value="delivered" <?php echo $order['status'] === 'delivered' ? 'selected' : ''; ?>>Delivered</option>
-                                <option value="cancelled" <?php echo $order['status'] === 'cancelled' ? 'selected' : ''; ?>>Cancelled</option>
-                            </select>
-                            <button type="submit" name="update_status" class="inline-flex items-center bg-primary-500 hover:bg-primary-600 text-white font-semibold py-2 px-4 rounded-lg transition">
-                                <i class="fas fa-sync mr-2"></i>Update
-                            </button>
-                        </form>
+                        <?php echo renderShiprocketProgressTracker($order); ?>
+                    </div>
+
+                    <!-- Shiprocket Tracking -->
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
+                            <div>
+                                <h5 class="font-bold text-gray-900">Shiprocket Shipping</h5>
+                                <p class="text-sm text-gray-500 mt-1">Live carrier status updates through Shiprocket.</p>
+                            </div>
+                            <div class="flex flex-wrap gap-2">
+                                <?php if (empty($order['shiprocket_shipment_id']) && empty($order['shiprocket_awb_code'])): ?>
+                                    <form method="POST" action="<?php echo BASE_URL; ?>admin/view_order.php?id=<?php echo $orderId; ?>">
+                                        <input type="hidden" name="shiprocket_action" value="create">
+                                        <button type="submit" class="inline-flex items-center bg-primary-500 hover:bg-primary-600 text-white font-semibold py-2 px-4 rounded-lg transition">
+                                            <i class="fas fa-truck-fast mr-2"></i>Create Shipment
+                                        </button>
+                                    </form>
+                                <?php else: ?>
+                                    <form method="POST" action="<?php echo BASE_URL; ?>admin/view_order.php?id=<?php echo $orderId; ?>">
+                                        <input type="hidden" name="shiprocket_action" value="sync">
+                                        <button type="submit" class="inline-flex items-center border-2 border-primary-500 text-primary-500 hover:bg-primary-500 hover:text-white font-semibold py-2 px-4 rounded-lg transition">
+                                            <i class="fas fa-rotate mr-2"></i>Sync Now
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                                <span class="block text-gray-500 mb-1">Shipment ID</span>
+                                <span class="font-medium text-gray-900"><?php echo e($order['shiprocket_shipment_id'] ?: 'Not created'); ?></span>
+                            </div>
+                            <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                                <span class="block text-gray-500 mb-1">AWB</span>
+                                <span class="font-medium text-gray-900"><?php echo e($order['shiprocket_awb_code'] ?: 'Not assigned'); ?></span>
+                            </div>
+                            <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                                <span class="block text-gray-500 mb-1">Courier</span>
+                                <span class="font-medium text-gray-900"><?php echo e($order['shiprocket_courier_name'] ?: 'Pending'); ?></span>
+                            </div>
+                            <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                                <span class="block text-gray-500 mb-1">Carrier Status</span>
+                                <span class="font-medium text-gray-900"><?php echo e($order['shiprocket_status'] ?: 'Waiting for Shiprocket'); ?></span>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 flex flex-wrap gap-4 text-sm">
+                            <?php if (!empty($trackingUrl)): ?>
+                                <a href="<?php echo e($trackingUrl); ?>" target="_blank" rel="noopener" class="text-primary-600 hover:text-primary-700 font-medium">
+                                    <i class="fas fa-location-dot mr-1"></i>Open Tracking
+                                </a>
+                            <?php endif; ?>
+                            <?php if (!empty($order['shiprocket_synced_at'])): ?>
+                                <span class="text-gray-500">Last sync: <?php echo date('M d, Y H:i', strtotime($order['shiprocket_synced_at'])); ?></span>
+                            <?php endif; ?>
+                        </div>
+
+                        <?php if (!empty($order['shiprocket_error'])): ?>
+                            <div class="mt-4 rounded-lg border border-yellow-200 bg-yellow-50 p-3 text-sm text-yellow-800">
+                                <?php echo e($order['shiprocket_error']); ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
 
                     <!-- Order Items -->

@@ -1,11 +1,14 @@
 <?php
     $currentAdminPage = basename($_SERVER['SCRIPT_NAME'] ?? '');
-    $adminNavLinkClass = function (string $file) use ($currentAdminPage): string {
+    $adminNavGroupLinkClass = function (array $files) use ($currentAdminPage): string {
         $base = 'flex items-center px-4 py-3 rounded-lg transition';
-        if ($currentAdminPage === $file) {
+        if (in_array($currentAdminPage, $files, true)) {
             return $base . ' bg-primary-500 text-white';
         }
         return $base . ' text-gray-300 hover:bg-gray-800';
+    };
+    $adminNavLinkClass = function (string $file) use ($adminNavGroupLinkClass): string {
+        return $adminNavGroupLinkClass([$file]);
     };
 ?>
 
@@ -29,8 +32,14 @@
         <a href="<?php echo BASE_URL; ?>admin/manage_featured_videos.php" class="<?php echo $adminNavLinkClass('manage_featured_videos.php'); ?>">
             <i class="fas fa-video w-6"></i>Featured Videos
         </a>
-        <a href="<?php echo BASE_URL; ?>admin/manage_orders.php" class="<?php echo $adminNavLinkClass('manage_orders.php'); ?>">
+        <a href="<?php echo BASE_URL; ?>admin/manage_orders.php" class="<?php echo $adminNavGroupLinkClass(['manage_orders.php', 'view_order.php']); ?>">
             <i class="fas fa-shopping-cart w-6"></i>Orders
+        </a>
+        <a href="<?php echo BASE_URL; ?>admin/manage_payments.php" class="<?php echo $adminNavLinkClass('manage_payments.php'); ?>">
+            <i class="fas fa-credit-card w-6"></i>Payments
+        </a>
+        <a href="<?php echo BASE_URL; ?>admin/manage_shipping.php" class="<?php echo $adminNavLinkClass('manage_shipping.php'); ?>">
+            <i class="fas fa-truck-fast w-6"></i>Shipping
         </a>
         <a href="<?php echo BASE_URL; ?>admin/manage_coupons.php" class="<?php echo $adminNavLinkClass('manage_coupons.php'); ?>">
             <i class="fas fa-ticket-alt w-6"></i>Coupons

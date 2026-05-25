@@ -129,6 +129,18 @@ CREATE TABLE IF NOT EXISTS `orders` (
   `city` varchar(100) NOT NULL,
   `state` varchar(100) NOT NULL,
   `pincode` varchar(10) NOT NULL,
+  `shiprocket_order_id` varchar(100) DEFAULT NULL,
+  `shiprocket_shipment_id` varchar(100) DEFAULT NULL,
+  `shiprocket_awb_code` varchar(100) DEFAULT NULL,
+  `shiprocket_courier_name` varchar(150) DEFAULT NULL,
+  `shiprocket_status` varchar(100) DEFAULT NULL,
+  `shiprocket_status_code` int(11) DEFAULT NULL,
+  `shiprocket_tracking_url` varchar(255) DEFAULT NULL,
+  `shiprocket_synced_at` datetime DEFAULT NULL,
+  `shiprocket_error` text DEFAULT NULL,
+  `shiprocket_payload` json DEFAULT NULL,
+  `shipped_at` datetime DEFAULT NULL,
+  `delivered_at` datetime DEFAULT NULL,
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -466,6 +478,139 @@ SET @sql = IF(@exists = 0,
               'ALTER TABLE orders ADD COLUMN razorpay_order_id VARCHAR(100) DEFAULT NULL', 
               'SELECT "razorpay_order_id column already exists"');
               
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Add Shiprocket fields to orders table if not exists
+SET @exists = (SELECT COUNT(*) FROM information_schema.columns
+               WHERE table_schema = DATABASE() AND table_name = 'orders' AND column_name = 'shiprocket_order_id');
+
+SET @sql = IF(@exists = 0,
+              'ALTER TABLE orders ADD COLUMN shiprocket_order_id VARCHAR(100) DEFAULT NULL',
+              'SELECT "shiprocket_order_id column already exists"');
+
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @exists = (SELECT COUNT(*) FROM information_schema.columns
+               WHERE table_schema = DATABASE() AND table_name = 'orders' AND column_name = 'shiprocket_shipment_id');
+
+SET @sql = IF(@exists = 0,
+              'ALTER TABLE orders ADD COLUMN shiprocket_shipment_id VARCHAR(100) DEFAULT NULL',
+              'SELECT "shiprocket_shipment_id column already exists"');
+
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @exists = (SELECT COUNT(*) FROM information_schema.columns
+               WHERE table_schema = DATABASE() AND table_name = 'orders' AND column_name = 'shiprocket_awb_code');
+
+SET @sql = IF(@exists = 0,
+              'ALTER TABLE orders ADD COLUMN shiprocket_awb_code VARCHAR(100) DEFAULT NULL',
+              'SELECT "shiprocket_awb_code column already exists"');
+
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @exists = (SELECT COUNT(*) FROM information_schema.columns
+               WHERE table_schema = DATABASE() AND table_name = 'orders' AND column_name = 'shiprocket_courier_name');
+
+SET @sql = IF(@exists = 0,
+              'ALTER TABLE orders ADD COLUMN shiprocket_courier_name VARCHAR(150) DEFAULT NULL',
+              'SELECT "shiprocket_courier_name column already exists"');
+
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @exists = (SELECT COUNT(*) FROM information_schema.columns
+               WHERE table_schema = DATABASE() AND table_name = 'orders' AND column_name = 'shiprocket_status');
+
+SET @sql = IF(@exists = 0,
+              'ALTER TABLE orders ADD COLUMN shiprocket_status VARCHAR(100) DEFAULT NULL',
+              'SELECT "shiprocket_status column already exists"');
+
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @exists = (SELECT COUNT(*) FROM information_schema.columns
+               WHERE table_schema = DATABASE() AND table_name = 'orders' AND column_name = 'shiprocket_status_code');
+
+SET @sql = IF(@exists = 0,
+              'ALTER TABLE orders ADD COLUMN shiprocket_status_code INT(11) DEFAULT NULL',
+              'SELECT "shiprocket_status_code column already exists"');
+
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @exists = (SELECT COUNT(*) FROM information_schema.columns
+               WHERE table_schema = DATABASE() AND table_name = 'orders' AND column_name = 'shiprocket_tracking_url');
+
+SET @sql = IF(@exists = 0,
+              'ALTER TABLE orders ADD COLUMN shiprocket_tracking_url VARCHAR(255) DEFAULT NULL',
+              'SELECT "shiprocket_tracking_url column already exists"');
+
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @exists = (SELECT COUNT(*) FROM information_schema.columns
+               WHERE table_schema = DATABASE() AND table_name = 'orders' AND column_name = 'shiprocket_synced_at');
+
+SET @sql = IF(@exists = 0,
+              'ALTER TABLE orders ADD COLUMN shiprocket_synced_at DATETIME DEFAULT NULL',
+              'SELECT "shiprocket_synced_at column already exists"');
+
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @exists = (SELECT COUNT(*) FROM information_schema.columns
+               WHERE table_schema = DATABASE() AND table_name = 'orders' AND column_name = 'shiprocket_error');
+
+SET @sql = IF(@exists = 0,
+              'ALTER TABLE orders ADD COLUMN shiprocket_error TEXT DEFAULT NULL',
+              'SELECT "shiprocket_error column already exists"');
+
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @exists = (SELECT COUNT(*) FROM information_schema.columns
+               WHERE table_schema = DATABASE() AND table_name = 'orders' AND column_name = 'shiprocket_payload');
+
+SET @sql = IF(@exists = 0,
+              'ALTER TABLE orders ADD COLUMN shiprocket_payload JSON DEFAULT NULL',
+              'SELECT "shiprocket_payload column already exists"');
+
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @exists = (SELECT COUNT(*) FROM information_schema.columns
+               WHERE table_schema = DATABASE() AND table_name = 'orders' AND column_name = 'shipped_at');
+
+SET @sql = IF(@exists = 0,
+              'ALTER TABLE orders ADD COLUMN shipped_at DATETIME DEFAULT NULL',
+              'SELECT "shipped_at column already exists"');
+
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @exists = (SELECT COUNT(*) FROM information_schema.columns
+               WHERE table_schema = DATABASE() AND table_name = 'orders' AND column_name = 'delivered_at');
+
+SET @sql = IF(@exists = 0,
+              'ALTER TABLE orders ADD COLUMN delivered_at DATETIME DEFAULT NULL',
+              'SELECT "delivered_at column already exists"');
+
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;

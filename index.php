@@ -88,7 +88,7 @@ try {
 ?>
 
 <!-- Hero Section -->
-<section class="bg-primary py-20 md:py-20 overflow-hidden">
+<section class="bg-primary mt-4 py-16 md:py-20 overflow-hidden">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         <div class="grid md:grid-cols-2 gap-10 lg:gap-16 items-center">
@@ -143,7 +143,7 @@ try {
                     </span>
                 </h1>
 
-                <p class="text-base text-white mb-10 max-w-lg mx-auto md:mx-0 animate-slide-left">
+                <p class="text-base text-white mb-20 max-w-lg mx-auto md:mx-0 animate-slide-left">
                     Discover the rich flavors of our carefully curated selection of wholesome snacks and aromatic spices, crafted to bring freshness, taste, and authenticity to every bite and every meal you prepare.
                 </p>
 

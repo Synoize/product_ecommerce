@@ -32,7 +32,7 @@ VALUES
     'Administrator',
     'admin@gmail.com',
     '9876543210',
-    '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+    '$2y$10$HuZFYH11qin0LzYkV1W3luJX5r8xvViWPYO7dJyZhZDnn0vSeXpJ6',
     'admin',
     1,
     '123 Admin Street',
