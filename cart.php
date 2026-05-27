@@ -35,8 +35,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $weight = null;
                     $flavor = null;
 
+                    if (!$weightId) {
+                        $stmt = $pdo->prepare("SELECT id, product_id, flavour AS flavor, weight, price, original_price, stock FROM product_variants WHERE product_id = ? AND status = 1 ORDER BY CASE WHEN stock > 0 THEN 0 ELSE 1 END, sort_order ASC LIMIT 1");
+                        $stmt->execute([$productId]);
+                        $defaultVariant = $stmt->fetch();
+
+                        if ($defaultVariant) {
+                            $weightId = (int)$defaultVariant['id'];
+                            $weight = $defaultVariant;
+                            $availableStock = $weight['stock'];
+                            $price = $weight['price'];
+                            $flavor = trim((string)($weight['flavor'] ?? ''));
+                        }
+                    }
+
                     // If weight is selected, get weight details
-                    if ($weightId) {
+                    if ($weightId && !$weight) {
                         $stmt = $pdo->prepare("SELECT id, product_id, flavour AS flavor, weight, price, original_price, stock FROM product_variants WHERE id = ? AND product_id = ? AND status = 1");
                         $stmt->execute([$weightId, $productId]);
                         $weight = $stmt->fetch();
@@ -54,9 +68,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     if ($availableStock >= $quantity) {
                         $cartKey = $weightId ? $productId . '_w' . $weightId : $productId;
+                        $addedToCart = false;
 
                         if (isset($_SESSION['cart'][$cartKey])) {
-                            $_SESSION['cart'][$cartKey]['quantity'] += $quantity;
+                            $newQuantity = (int)$_SESSION['cart'][$cartKey]['quantity'] + $quantity;
+                            if ($newQuantity > (int)$availableStock) {
+                                setFlash('Not enough stock available.', 'warning');
+                            } else {
+                                $_SESSION['cart'][$cartKey]['quantity'] = $newQuantity;
+                                $_SESSION['cart'][$cartKey]['stock'] = $availableStock;
+                                $addedToCart = true;
+                            }
                         } else {
                             // Use default weight from product if no weight variant selected
                             $weightLabel = $weight ? $weight['weight'] : (isset($product['weight']) && trim($product['weight']) !== '' ? trim($product['weight']) : null);
@@ -73,8 +95,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 'flavour' => $flavor,
                                 'weight' => $weightLabel
                             ];
+                            $addedToCart = true;
                         }
-                        setFlash('Product added to cart successfully!', 'success');
+
+                        if ($addedToCart) {
+                            setFlash('Product added to cart successfully!', 'success');
+                        }
                     } else {
                         setFlash('Not enough stock available.', 'warning');
                     }

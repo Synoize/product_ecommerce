@@ -35,9 +35,15 @@ if (isset($_GET['delete'])) {
 
 // Fetch all products
 try {
-    $stmt = $pdo->query("SELECT p.*, c.name as category_name 
+    $stmt = $pdo->query("SELECT p.*, c.name as category_name, v.total_variant_stock
                         FROM products p 
                         LEFT JOIN categories c ON p.category_id = c.id 
+                        LEFT JOIN (
+                            SELECT product_id, SUM(stock) AS total_variant_stock
+                            FROM product_variants
+                            WHERE status = 1
+                            GROUP BY product_id
+                        ) v ON v.product_id = p.id
                         ORDER BY p.created_at DESC");
     $products = $stmt->fetchAll();
 } catch (PDOException $e) {
@@ -85,7 +91,7 @@ try {
                                 <td class="px-4 py-3 text-sm font-medium text-gray-900"><?php echo e($product['name']); ?></td>
                                 <td class="px-4 py-3 text-sm"><?php echo e($product['category_name'] ?? 'N/A'); ?></td>
                                 <td class="px-4 py-3 text-sm"><?php echo formatCurrency($product['price']); ?></td>
-                                <td class="px-4 py-3 text-sm"><?php echo $product['stock']; ?></td>
+                                <td class="px-4 py-3 text-sm"><?php echo $product['total_variant_stock'] !== null ? (int)$product['total_variant_stock'] : (int)$product['stock']; ?></td>
                                 <td class="px-4 py-3">
                                     <span class="inline-block px-2 py-1 rounded text-xs font-medium <?php echo $product['status'] ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'; ?>">
                                         <?php echo $product['status'] ? 'Active' : 'Inactive'; ?>

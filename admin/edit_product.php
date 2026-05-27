@@ -74,8 +74,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($name)) $errors[] = 'Product name is required';
     if (empty($description)) $errors[] = 'Description is required';
     if ($categoryId <= 0) $errors[] = 'Please select a category';
-    if ($price <= 0) $errors[] = 'Price must be greater than 0';
-    if ($stock < 0) $errors[] = 'Stock cannot be negative';
     
     $imageName = $product['image'];
     
@@ -204,7 +202,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $validWeights = [];
     
     if (!empty($weights)) {
-        foreach ($weights as $weightData) {
+        foreach ($weights as $index => $weightData) {
             $weightFlavor = trim($weightData['flavour'] ?? ($weightData['flavor'] ?? ''));
             $weight = trim($weightData['weight'] ?? '');
             $weightPrice = (float)($weightData['price'] ?? 0);
@@ -224,6 +222,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     }
+
+    if (!empty($validWeights)) {
+        $stock = array_sum(array_column($validWeights, 'stock'));
+        if ($price <= 0) {
+            $price = (float)$validWeights[0]['price'];
+        }
+        if ($originalPrice <= 0 && !empty($validWeights[0]['original_price'])) {
+            $originalPrice = (float)$validWeights[0]['original_price'];
+        }
+    }
+
+    if ($price <= 0) $errors[] = 'Price must be greater than 0';
+    if ($originalPrice <= 0) $errors[] = 'Original price must be greater than 0';
+    if ($stock < 0) $errors[] = 'Stock cannot be negative';
     
     if (empty($errors)) {
         try {
@@ -318,19 +330,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <textarea name="legal_mandatories" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500" rows="3" placeholder="Add FSSAI, manufacturer, country of origin, shelf life, or other required details"><?php echo e($_POST['legal_mandatories'] ?? ($product['legal_mandatories'] ?? '')); ?></textarea>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Price (₹) *</label>
-                                <input type="number" name="price" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500" step="0.01" min="0" required
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Default Price (₹) *</label>
+                                <input type="number" name="price" id="defaultPrice" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500" step="0.01" min="0" required
                                        value="<?php echo e($_POST['price'] ?? $product['price']); ?>">
+                                <p class="text-xs text-gray-500 mt-1">Fallback price used when no variant is selected</p>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Original Price (₹)</label>
-                                <input type="number" name="original_price" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500" step="0.01" min="0"
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Default Original Price (₹) *</label>
+                                <input type="number" name="original_price" id="defaultOriginalPrice" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500" step="0.01" min="0" required
                                        value="<?php echo e($_POST['original_price'] ?? $product['original_price']); ?>">
+                                <p class="text-xs text-gray-500 mt-1">Fallback MRP used for discount display</p>
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Stock Quantity *</label>
-                                <input type="number" name="stock" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500" min="0" required
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Total Stock Quantity *</label>
+                                <input type="number" name="stock" id="defaultStock" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500" min="0" required
                                        value="<?php echo e($_POST['stock'] ?? $product['stock']); ?>">
+                                <p class="text-xs text-gray-500 mt-1">With variants, this is saved as the total of all variant stock</p>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Default Weight</label>
@@ -517,5 +532,49 @@ function addWeight() {
 
 function removeWeight(button) {
     button.closest('.weight-entry').remove();
+    syncDefaultProductFields();
 }
+
+function syncDefaultProductFields() {
+    const entries = Array.from(document.querySelectorAll('.weight-entry'));
+    const defaultPrice = document.getElementById('defaultPrice');
+    const defaultOriginalPrice = document.getElementById('defaultOriginalPrice');
+    const defaultStock = document.getElementById('defaultStock');
+    let totalStock = 0;
+    let firstPrice = '';
+    let firstOriginalPrice = '';
+    let hasUsableVariant = false;
+
+    entries.forEach(entry => {
+        const weightInput = entry.querySelector('input[name$="[weight]"]');
+        const priceInput = entry.querySelector('input[name$="[price]"]');
+        const originalPriceInput = entry.querySelector('input[name$="[original_price]"]');
+        const stockInput = entry.querySelector('input[name$="[stock]"]');
+
+        if (!weightInput || weightInput.value.trim() === '') return;
+
+        hasUsableVariant = true;
+        totalStock += Math.max(0, parseInt(stockInput && stockInput.value ? stockInput.value : '0', 10) || 0);
+
+        if (firstPrice === '' && priceInput && priceInput.value !== '') {
+            firstPrice = priceInput.value;
+        }
+        if (firstOriginalPrice === '' && originalPriceInput && originalPriceInput.value !== '') {
+            firstOriginalPrice = originalPriceInput.value;
+        }
+    });
+
+    if (hasUsableVariant && defaultStock) {
+        defaultStock.value = totalStock;
+    }
+    if (defaultPrice && defaultPrice.value === '' && firstPrice !== '') {
+        defaultPrice.value = firstPrice;
+    }
+    if (defaultOriginalPrice && defaultOriginalPrice.value === '' && firstOriginalPrice !== '') {
+        defaultOriginalPrice.value = firstOriginalPrice;
+    }
+}
+
+document.getElementById('weights-container').addEventListener('input', syncDefaultProductFields);
+syncDefaultProductFields();
 </script>

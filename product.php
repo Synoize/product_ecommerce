@@ -339,7 +339,7 @@ require_once __DIR__ . '/includes/header.php';
                     <?php endif; ?>
 
                     <!-- Description -->
-                    <p class="text-gray-600 mb-6 text-sm leading-relaxed"><?php echo nl2br(e($product['description'])); ?></p>
+                    <p class="text-gray-600 mb-6 text-sm leading-relaxed line-clamp-2"><?php echo nl2br(e($product['description'])); ?></p>
 
                     <!-- Stock Status -->
                     <div class="mb-6">

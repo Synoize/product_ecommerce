@@ -23,6 +23,16 @@ if (!isset($_SESSION['checkout_data']) || !isset($_SESSION['is_cod_order'])) {
 $checkoutData = $_SESSION['checkout_data'];
 $userId = $_SESSION['user_id'];
 $cart = $_SESSION['cart'];
+$syncProductStockFromVariants = function (int $productId) use ($pdo) {
+    $stmt = $pdo->prepare("UPDATE products p
+        SET p.stock = (
+            SELECT COALESCE(SUM(pv.stock), 0)
+            FROM product_variants pv
+            WHERE pv.product_id = p.id AND pv.status = 1
+        )
+        WHERE p.id = ?");
+    $stmt->execute([$productId]);
+};
 
 try {
     // Start transaction
@@ -85,6 +95,8 @@ try {
             if ($weightStockStmt->rowCount() === 0) {
                 throw new Exception('Insufficient stock for weight variant: ' . $item['name'] . ' (' . $weight . ')');
             }
+
+            $syncProductStockFromVariants($productId);
         } else {
             // Update main product stock
             $stockQuery = "UPDATE products SET stock = stock - ? WHERE id = ? AND stock >= ?";
