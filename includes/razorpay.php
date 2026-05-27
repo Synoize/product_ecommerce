@@ -25,8 +25,10 @@ function razorpayApiRequest($endpoint, $method = 'POST', $data = null) {
     curl_setopt($ch, CURLOPT_USERPWD, RAZORPAY_KEY_ID . ':' . RAZORPAY_KEY_SECRET);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-    
-    if ($method === 'POST' && $data) {
+
+    if (strtoupper($method) === 'GET') {
+        curl_setopt($ch, CURLOPT_HTTPGET, true);
+    } elseif ($data) {
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
     }
@@ -87,13 +89,29 @@ function verifyRazorpaySignature($orderId, $paymentId, $signature) {
  * Fetch Payment Details
  */
 function fetchRazorpayPayment($paymentId) {
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, RAZORPAY_API_URL . '/payments/' . $paymentId);
-    curl_setopt($ch, CURLOPT_USERPWD, RAZORPAY_KEY_ID . ':' . RAZORPAY_KEY_SECRET);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    
-    $response = curl_exec($ch);
-    curl_close($ch);
-    
-    return json_decode($response, true);
+    return razorpayApiRequest('/payments/' . rawurlencode($paymentId), 'GET');
+}
+
+/**
+ * Create Razorpay Refund
+ * Amount is in rupees and is converted to paise.
+ */
+function createRazorpayRefund($paymentId, $amount, array $notes = [], $receipt = null)
+{
+    $payload = [
+        'amount' => (int)round(((float)$amount) * 100),
+        'speed' => 'normal',
+    ];
+
+    if ($receipt) {
+        $payload['receipt'] = $receipt;
+    }
+
+    foreach ($notes as $key => $value) {
+        if ($value !== null && $value !== '') {
+            $payload['notes[' . $key . ']'] = (string)$value;
+        }
+    }
+
+    return razorpayApiRequest('/payments/' . rawurlencode($paymentId) . '/refund', 'POST', $payload);
 }

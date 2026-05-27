@@ -93,5 +93,7 @@ require_once __DIR__ . '/includes/header.php';
     </div>
 </section>
 
+<?php require_once 'includes/floating-icons.php'; ?>
+
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
 

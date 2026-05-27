@@ -21,3 +21,9 @@
     background: #3fa4d4;
     transition: background 0.3s ease;
 }
+
+/* HORIZONTAL */
+::-webkit-scrollbar:horizontal {
+    width: 0px;
+    height: 0px;
+}

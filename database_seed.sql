@@ -4,7 +4,7 @@
 -- Run this after database.sql
 -- =========================================================
 
-USE ecommerce_db;
+USE if0_42013005_theearthence;
 
 -- =========================================================
 -- USERS
@@ -285,7 +285,7 @@ VALUES
 );
 
 -- =========================================================
--- PRODUCT WEIGHTS
+-- PRODUCT VARIANTS
 -- =========================================================
 
 INSERT INTO `product_variants`
@@ -466,7 +466,11 @@ VALUES
     '["pkg1.png","pkg2.png","pkg3.png"]'
 );
 
-INSERT INTO featured_products_video (badge, file_path)
+INSERT INTO `featured_products_video`
+(
+    `badge`,
+    `file_path`
+)
 VALUES
 ('Best Seller', 'makhana-classic.mp4'),
 ('Cheesy', 'https://www.youtube.com/embed/dQw4w9WgXcQ'),

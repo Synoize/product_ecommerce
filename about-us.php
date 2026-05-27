@@ -866,4 +866,6 @@ require_once 'includes/header.php';
     </div>
 </section>
 
+<?php require_once 'includes/floating-icons.php'; ?>
+
 <?php require_once 'includes/footer.php'; ?>

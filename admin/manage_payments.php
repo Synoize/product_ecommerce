@@ -5,7 +5,10 @@
 
 $pageTitle = 'Manage Payments';
 require_once __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/../includes/order_lifecycle.php';
 requireAdmin();
+
+orderLifecycleEnsureSchema($pdo);
 
 $methodFilter = $_GET['method'] ?? '';
 $statusFilter = $_GET['payment_status'] ?? '';
@@ -23,7 +26,8 @@ if ($methodFilter !== '') {
 }
 
 if ($statusFilter !== '') {
-    $query .= " AND (o.payment_status = ? OR o.initial_payment_status = ?)";
+    $query .= " AND (o.payment_status = ? OR o.initial_payment_status = ? OR o.refund_status = ?)";
+    $params[] = $statusFilter;
     $params[] = $statusFilter;
     $params[] = $statusFilter;
 }
@@ -95,6 +99,7 @@ $orders = $stmt->fetchAll();
                                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Customer</th>
                                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Method</th>
                                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
+                                <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Refund</th>
                                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Amounts</th>
                                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Gateway IDs</th>
                                 <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Date</th>
@@ -111,6 +116,8 @@ $orders = $stmt->fetchAll();
                                 $initialClass = $initialStatus === 'paid'
                                     ? 'bg-green-100 text-green-700'
                                     : ($initialStatus === 'failed' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700');
+                                $refundStatus = $order['refund_status'] ?? 'not_applicable';
+                                $refundAmount = (float)($order['refund_amount'] ?? 0);
                             ?>
                                 <tr>
                                     <td class="px-4 py-3 text-sm font-medium">#<?php echo (int)$order['id']; ?></td>
@@ -130,6 +137,22 @@ $orders = $stmt->fetchAll();
                                                 <span class="inline-block px-2 py-1 rounded text-xs font-medium <?php echo $initialClass; ?>">
                                                     Initial <?php echo ucfirst(e($initialStatus)); ?>
                                                 </span>
+                                            </div>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <span class="inline-block px-2 py-1 rounded text-xs font-medium <?php echo orderRefundStatusClass($refundStatus); ?>">
+                                            <?php echo e(orderRefundStatusLabel($refundStatus)); ?>
+                                        </span>
+                                        <?php if ($refundAmount > 0): ?>
+                                            <div class="text-xs text-green-700 mt-1"><?php echo formatCurrency($refundAmount); ?></div>
+                                        <?php endif; ?>
+                                        <?php if (!empty($order['refund_gateway_id'])): ?>
+                                            <div class="text-xs text-gray-500 mt-1 max-w-36 truncate" title="<?php echo e($order['refund_gateway_id']); ?>">
+                                                <?php echo e($order['refund_gateway_id']); ?>
+                                            </div>
+                                            <div class="text-xs text-gray-500">
+                                                <?php echo e($order['refund_gateway_status'] ?: 'processed'); ?>
                                             </div>
                                         <?php endif; ?>
                                     </td>
@@ -163,7 +186,7 @@ $orders = $stmt->fetchAll();
 
                             <?php if (empty($orders)): ?>
                                 <tr>
-                                    <td colspan="8" class="px-4 py-8 text-center text-gray-500">No payments found</td>
+                                    <td colspan="9" class="px-4 py-8 text-center text-gray-500">No payments found</td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>

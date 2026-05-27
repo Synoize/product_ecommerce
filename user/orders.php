@@ -8,21 +8,68 @@
 $pageTitle = 'My Orders';
 require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/shiprocket.php';
+require_once __DIR__ . '/../includes/order_lifecycle.php';
 
 // Require login
 requireLogin();
 
 $userId = $_SESSION['user_id'];
 shiprocketEnsureSchema($pdo);
+orderLifecycleEnsureSchema($pdo);
+$statusFilter = $_GET['status'] ?? '';
+$allowedOrderFilters = ['', 'active', 'cancelled'];
+if (!in_array($statusFilter, $allowedOrderFilters, true)) {
+    $statusFilter = '';
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['order_action'] ?? '') === 'cancel_order') {
+    $result = orderCancelByUser(
+        $pdo,
+        $_POST['order_id'] ?? 0,
+        $userId,
+        $_POST['cancel_reason'] ?? '',
+        $_POST['cancel_reason_detail'] ?? ''
+    );
+
+    setFlash($result['message'], $result['success'] ? 'success' : 'danger');
+    redirect(BASE_URL . 'user/orders.php');
+}
 
 // Fetch user's orders
 try {
-    $stmt = $pdo->prepare("SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC");
-    $stmt->execute([$userId]);
+    $query = "SELECT * FROM orders WHERE user_id = ?";
+    $params = [$userId];
+
+    if ($statusFilter === 'cancelled') {
+        $query .= " AND status = 'cancelled'";
+    } elseif ($statusFilter === 'active') {
+        $query .= " AND status <> 'cancelled'";
+    }
+
+    $query .= " ORDER BY created_at DESC";
+    $stmt = $pdo->prepare($query);
+    $stmt->execute($params);
     $orders = $stmt->fetchAll();
 } catch (PDOException $e) {
     $orders = [];
     error_log('Orders Fetch Error: ' . $e->getMessage());
+}
+
+$orderCounts = ['all' => 0, 'active' => 0, 'cancelled' => 0];
+try {
+    $countStmt = $pdo->prepare("SELECT status, COUNT(*) AS total FROM orders WHERE user_id = ? GROUP BY status");
+    $countStmt->execute([$userId]);
+    foreach ($countStmt->fetchAll() as $row) {
+        $count = (int)$row['total'];
+        $orderCounts['all'] += $count;
+        if (($row['status'] ?? '') === 'cancelled') {
+            $orderCounts['cancelled'] += $count;
+        } else {
+            $orderCounts['active'] += $count;
+        }
+    }
+} catch (PDOException $e) {
+    error_log('Order Count Fetch Error: ' . $e->getMessage());
 }
 
 // Fetch order items for each order
@@ -50,13 +97,33 @@ foreach ($orders as $order) {
             <!-- Orders List -->
             <div class="md:col-span-3">
                 <div class="bg-white md:border md:rounded-lg md:shadow-sm md:p-8 min-h-[560px]">
-                    <h4 class="text-2xl font-bold text-gray-900 mb-6">My Orders</h4>
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+                        <h4 class="text-2xl font-bold text-gray-900">My Orders</h4>
+                        <div class="flex flex-wrap gap-2 text-sm">
+                            <a href="<?php echo BASE_URL; ?>user/orders.php"
+                               class="px-3 py-2 rounded-lg border <?php echo $statusFilter === '' ? 'bg-primary-500 border-primary-500 text-white' : 'border-gray-300 text-gray-700 hover:border-primary-500 hover:text-primary-600'; ?>">
+                                All (<?php echo (int)$orderCounts['all']; ?>)
+                            </a>
+                            <a href="<?php echo BASE_URL; ?>user/orders.php?status=active"
+                               class="px-3 py-2 rounded-lg border <?php echo $statusFilter === 'active' ? 'bg-primary-500 border-primary-500 text-white' : 'border-gray-300 text-gray-700 hover:border-primary-500 hover:text-primary-600'; ?>">
+                                Active (<?php echo (int)$orderCounts['active']; ?>)
+                            </a>
+                            <a href="<?php echo BASE_URL; ?>user/orders.php?status=cancelled"
+                               class="px-3 py-2 rounded-lg border <?php echo $statusFilter === 'cancelled' ? 'bg-red-500 border-red-500 text-white' : 'border-gray-300 text-gray-700 hover:border-red-500 hover:text-red-600'; ?>">
+                                Cancelled (<?php echo (int)$orderCounts['cancelled']; ?>)
+                            </a>
+                        </div>
+                    </div>
 
                     <?php if (empty($orders)): ?>
                         <div class="text-center py-12">
                             <i class="fas fa-box-open text-6xl text-gray-300 mb-4"></i>
-                            <h5 class="text-xl font-semibold text-gray-900 mb-2">No orders yet</h5>
-                            <p class="text-gray-500 mb-6">Start shopping to see your orders here!</p>
+                            <h5 class="text-xl font-semibold text-gray-900 mb-2">
+                                <?php echo $statusFilter === 'cancelled' ? 'No cancelled orders' : ($statusFilter === 'active' ? 'No active orders' : 'No orders yet'); ?>
+                            </h5>
+                            <p class="text-gray-500 mb-6">
+                                <?php echo $statusFilter === '' ? 'Start shopping to see your orders here!' : 'Orders in this section will appear here.'; ?>
+                            </p>
                             <a href="<?php echo BASE_URL; ?>shop.php" class="inline-flex items-center bg-primary hover:bg-primary-600 text-white font-semibold py-3 px-6 rounded-full transition hover:shadow-sm">
                                 <i class="fas fa-shopping-bag mr-2"></i>Start Shopping
                             </a>
@@ -251,6 +318,7 @@ foreach ($orders as $order) {
                                                 ? 'https://shiprocket.co/tracking/' . rawurlencode($order['shiprocket_awb_code'])
                                                 : '');
                                         ?>
+                                        <?php if (($order['status'] ?? '') !== 'cancelled'): ?>
                                         <div class="mt-6 md:rounded-lg md:border md:border-gray-200 md:bg-gray-50 md:p-8 text-sm">
                                             <h6 class="font-bold text-gray-900 mb-5">Order Tracking</h6>
                                             <div class="mb-2 md:mb-6">
@@ -271,6 +339,73 @@ foreach ($orders as $order) {
                                                 <?php endif; ?>
                                             </div>
                                         </div>
+                                        <?php endif; ?>
+
+                                        <?php
+                                        $canCancelOrder = orderCanBeCancelledByUser($order);
+                                        $refundStatus = $order['refund_status'] ?? 'not_applicable';
+                                        $refundAmount = (float)($order['refund_amount'] ?? 0);
+                                        ?>
+                                        <?php if ($canCancelOrder || !empty($order['cancelled_at']) || !empty($order['cancel_reason'])): ?>
+                                            <div class="mt-6 rounded-lg border <?php echo ($order['status'] ?? '') === 'cancelled' ? 'border-red-200 bg-red-50' : 'border-gray-200 bg-white'; ?> p-4 text-sm">
+                                                <h6 class="font-bold <?php echo ($order['status'] ?? '') === 'cancelled' ? 'text-red-700' : 'text-gray-900'; ?> mb-3">
+                                                    <?php echo ($order['status'] ?? '') === 'cancelled' ? 'Order Cancelled' : 'Cancellation'; ?>
+                                                </h6>
+
+                                                <?php if (!empty($order['cancelled_at']) || !empty($order['cancel_reason'])): ?>
+                                                    <div class="space-y-2">
+                                                        <div class="flex justify-between gap-4">
+                                                            <span class="text-gray-500">Reason</span>
+                                                            <span class="font-medium text-gray-900 text-right"><?php echo e(orderCancellationReasonLabel($order)); ?></span>
+                                                        </div>
+                                                        <div class="flex justify-between gap-4">
+                                                            <span class="text-gray-500">Cancelled At</span>
+                                                            <span class="font-medium text-gray-900"><?php echo !empty($order['cancelled_at']) ? date('M d, Y H:i', strtotime($order['cancelled_at'])) : 'Pending'; ?></span>
+                                                        </div>
+                                                        <div class="flex justify-between gap-4">
+                                                            <span class="text-gray-500">Refund</span>
+                                                            <span class="inline-block px-2 py-1 rounded text-xs font-medium <?php echo orderRefundStatusClass($refundStatus); ?>">
+                                                                <?php echo e(orderRefundStatusLabel($refundStatus)); ?>
+                                                            </span>
+                                                        </div>
+                                                        <?php if ($refundAmount > 0): ?>
+                                                            <div class="flex justify-between gap-4">
+                                                                <span class="text-gray-500">Refund Amount</span>
+                                                                <span class="font-medium text-green-700"><?php echo formatCurrency($refundAmount); ?></span>
+                                                            </div>
+                                                        <?php endif; ?>
+                                                        <?php if (!empty($order['refund_note'])): ?>
+                                                            <div class="pt-2 border-t border-gray-200">
+                                                                <span class="block text-gray-500">Admin Note</span>
+                                                                <span class="text-gray-700"><?php echo e($order['refund_note']); ?></span>
+                                                            </div>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                <?php else: ?>
+                                                    <?php
+                                                    $cancelDeadline = orderCancellationDeadline($order);
+                                                    $cancelMinutes = orderCancellationWindowMinutes();
+                                                    ?>
+                                                    <div class="rounded-lg border border-yellow-200 bg-yellow-50 p-3 text-xs text-yellow-800">
+                                                        You can cancel this order within <?php echo (int)$cancelMinutes; ?> minutes after placing it<?php echo $cancelDeadline ? ', until ' . date('M d, Y H:i', $cancelDeadline) : ''; ?>.
+                                                    </div>
+                                                    <form method="POST" action="<?php echo BASE_URL; ?>user/orders.php" class="space-y-3">
+                                                        <input type="hidden" name="order_action" value="cancel_order">
+                                                        <input type="hidden" name="order_id" value="<?php echo (int)$order['id']; ?>">
+                                                        <select name="cancel_reason" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+                                                            <option value="">Select reason</option>
+                                                            <?php foreach (orderCancellationReasons() as $reasonValue => $reasonLabel): ?>
+                                                                <option value="<?php echo e($reasonValue); ?>"><?php echo e($reasonLabel); ?></option>
+                                                            <?php endforeach; ?>
+                                                        </select>
+                                                        <textarea name="cancel_reason_detail" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" placeholder="Custom reason, if needed"></textarea>
+                                                        <button type="submit" class="inline-flex items-center bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-lg transition">
+                                                            <i class="fas fa-ban mr-2"></i>Cancel Order
+                                                        </button>
+                                                    </form>
+                                                <?php endif; ?>
+                                            </div>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             <?php endforeach; ?>

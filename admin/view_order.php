@@ -7,6 +7,8 @@
 $pageTitle = 'Order Details';
 require_once __DIR__ . '/includes/header.php';
 require_once __DIR__ . '/../includes/shiprocket.php';
+require_once __DIR__ . '/../includes/order_lifecycle.php';
+require_once __DIR__ . '/../includes/razorpay.php';
 requireAdmin();
 
 // Get order ID
@@ -18,6 +20,19 @@ if ($orderId <= 0) {
 }
 
 shiprocketEnsureSchema($pdo);
+orderLifecycleEnsureSchema($pdo);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['process_razorpay_refund'])) {
+    $result = orderProcessRazorpayRefund(
+        $pdo,
+        $orderId,
+        0,
+        ''
+    );
+
+    setFlash($result['message'], $result['success'] ? 'success' : 'danger');
+    redirect(BASE_URL . 'admin/view_order.php?id=' . $orderId);
+}
 
 // Fetch order details
 try {
@@ -306,6 +321,95 @@ $trackingUrl = !empty($order['shiprocket_tracking_url'])
                                 <span class="inline-block bg-primary-100 text-primary-700 px-2 py-1 rounded text-xs font-medium"><?php echo e($order['coupon_code']); ?></span>
                             </div>
                         <?php endif; ?>
+                    </div>
+
+                    <!-- Refund Management -->
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h5 class="font-bold text-gray-900 mb-4">Refund Management</h5>
+                        <?php
+                        $refundStatus = $order['refund_status'] ?? 'not_applicable';
+                        $directRefundAmount = orderRefundAmountDue($order);
+                        $refundAmount = (float)($order['refund_amount'] ?? 0);
+                        if ($refundAmount <= 0) {
+                            $refundAmount = $directRefundAmount;
+                        }
+                        $canProcessRazorpayRefund = ($order['status'] ?? '') === 'cancelled'
+                            && !empty($order['razorpay_payment_id'])
+                            && empty($order['refund_gateway_id'])
+                            && $directRefundAmount > 0;
+                        ?>
+
+                        <?php if (!empty($order['cancel_reason']) || !empty($order['cancelled_at'])): ?>
+                            <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm mb-4">
+                                <div class="space-y-2">
+                                    <div class="flex justify-between gap-4">
+                                        <span class="text-gray-500">Cancelled By</span>
+                                        <span class="font-medium text-gray-900"><?php echo ucfirst(e($order['cancelled_by'] ?? 'User')); ?></span>
+                                    </div>
+                                    <div class="flex justify-between gap-4">
+                                        <span class="text-gray-500">Reason</span>
+                                        <span class="font-medium text-gray-900 text-right"><?php echo e(orderCancellationReasonLabel($order)); ?></span>
+                                    </div>
+                                    <div class="flex justify-between gap-4">
+                                        <span class="text-gray-500">Cancelled At</span>
+                                        <span class="font-medium text-gray-900"><?php echo !empty($order['cancelled_at']) ? date('M d, Y H:i', strtotime($order['cancelled_at'])) : 'Pending'; ?></span>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if ($canProcessRazorpayRefund): ?>
+                            <div class="mb-4 rounded-lg border border-primary-200 bg-primary-50 p-4 text-sm">
+                                <div class="font-semibold text-gray-900 mb-1">Refund available</div>
+                                <div class="text-gray-700 mb-3">
+                                    This cancelled order can be refunded directly to the customer through Razorpay.
+                                </div>
+                                <div class="text-xs text-gray-500">Payment: <?php echo e($order['razorpay_payment_id']); ?></div>
+                            </div>
+                        <?php endif; ?>
+
+                        <div class="space-y-3">
+                            <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm">
+                                <div class="space-y-2">
+                                    <div class="flex justify-between gap-4">
+                                        <span class="text-gray-500">Refund Status</span>
+                                        <span class="inline-block px-2 py-1 rounded text-xs font-medium <?php echo orderRefundStatusClass($refundStatus); ?>">
+                                            <?php echo e(orderRefundStatusLabel($refundStatus)); ?>
+                                        </span>
+                                    </div>
+                                    <div class="flex justify-between gap-4">
+                                        <span class="text-gray-500">Refund Amount</span>
+                                        <span class="font-medium text-gray-900"><?php echo formatCurrency($refundAmount); ?></span>
+                                    </div>
+                                    <?php if (!empty($order['refunded_at'])): ?>
+                                        <div class="flex justify-between gap-4">
+                                            <span class="text-gray-500">Refunded At</span>
+                                            <span class="font-medium text-gray-900"><?php echo date('M d, Y H:i', strtotime($order['refunded_at'])); ?></span>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                            <?php if (!empty($order['refund_gateway_id'])): ?>
+                                <div class="rounded-lg border border-green-200 bg-green-50 p-3 text-sm">
+                                    <div class="font-medium text-green-800">Razorpay refund created</div>
+                                    <div class="text-green-700">Refund ID: <?php echo e($order['refund_gateway_id']); ?></div>
+                                    <div class="text-green-700">Gateway Status: <?php echo e($order['refund_gateway_status'] ?: 'processed'); ?></div>
+                                </div>
+                            <?php endif; ?>
+                            <div class="flex flex-wrap gap-2">
+                                <?php if ($canProcessRazorpayRefund): ?>
+                                    <form method="POST" action="<?php echo BASE_URL; ?>admin/view_order.php?id=<?php echo $orderId; ?>">
+                                    <button type="submit" name="process_razorpay_refund" class="inline-flex items-center bg-primary-500 hover:bg-primary-600 text-white font-semibold py-2 px-4 rounded-lg transition">
+                                        <i class="fas fa-rotate-left mr-2"></i>Refund <?php echo formatCurrency($directRefundAmount); ?>
+                                    </button>
+                                    </form>
+                                <?php elseif (($order['status'] ?? '') === 'cancelled' && empty($order['refund_gateway_id'])): ?>
+                                    <span class="inline-flex items-center px-3 py-2 rounded-lg bg-gray-100 text-gray-600 text-sm">
+                                        Razorpay refund unavailable
+                                    </span>
+                                <?php endif; ?>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Customer Info -->

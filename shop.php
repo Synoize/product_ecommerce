@@ -458,15 +458,18 @@ unset($paginationParams['flavour'], $paginationParams['weight']);
                         <div class="bg-white rounded-2xl border hover:shadow-md transition-all duration-300 overflow-hidden group">
 
                             <!-- IMAGE -->
-                            <div class="relative overflow-hidden p-3 md:p-4 bg-primary-100/50">
+                            <div class="relative overflow-hidden p-2 bg-white flex items-center justify-center">
                                 <?php $imageUrl = getImageUrl($product['image'], 'products'); ?>
 
-                                <a href="<?php echo BASE_URL; ?>product.php?id=<?php echo $product['id']; ?>">
+                                <a
+                                    href="<?php echo BASE_URL; ?>product.php?id=<?php echo $product['id']; ?>"
+                                    class="w-full flex items-center justify-center">
                                     <img
                                         src="<?php echo $imageUrl; ?>"
                                         alt="<?php echo e($product['name']); ?>"
                                         class="h-28 sm:h-40 md:h-44 object-contain 
-                       group-hover:scale-105 transition duration-300">
+                                               drop-shadow-[0_8px_40px_rgba(0,0,0,0.14)]
+                                               group-hover:scale-105 transition duration-300">
                                 </a>
 
                                 <!-- BADGES -->

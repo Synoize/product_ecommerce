@@ -31,6 +31,7 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo isset($pageTitle) ? e($pageTitle) . ' - ' : ''; ?>Earthence</title>
     <link rel="icon" href="<?= ASSETS_URL; ?>/public/favicon.ico">
+    <link rel="stylesheet" href="./../assets/public/css/style.css">
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

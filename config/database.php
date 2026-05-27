@@ -284,7 +284,7 @@ function renderWishlistIconButton($productId, $formClass = '', $buttonClass = ''
     // Button style
     $classes = trim(
         'group w-10 h-10 rounded-full 
-        bg-white flex items-center justify-center' . $buttonClass
+        bg-gray-50 flex items-center justify-center' . $buttonClass
     );
 ?>
 
