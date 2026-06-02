@@ -12,8 +12,8 @@ require_once 'includes/header.php';
 <section class="py-12 md:pt-20">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
 
-        <h1 class="text-3xl sm:text-5xl text-primary-600 leading-[1.2] mb-6 font-luckiest animate-slide-top"
-            style="-webkit-text-stroke: 0.5px black;">
+        <h1 class="text-3xl sm:text-5xl text-primary-600 leading-[1.2] mb-6 font-secondary animate-slide-top"
+             style="text-shadow: 2px 2px 4px rgba(0,0,0,0.25);">
 
             About
             <span class="text-accent">
@@ -46,8 +46,8 @@ require_once 'includes/header.php';
 
         <div class="text-center md:text-start">
 
-            <h2 class="text-2xl sm:text-3xl text-primary-600 leading-[1.2] mb-6 font-luckiest animate-slide-right"
-                style="-webkit-text-stroke: 0.2px black;">
+            <h2 class="text-2xl sm:text-3xl text-primary-600 leading-[1.2] mb-6 font-secondary animate-slide-right"
+                style="text-shadow: 2px 2px 4px rgba(0,0,0,0.25);">
 
                 Who We
                 <span class="text-accent">
@@ -90,8 +90,8 @@ require_once 'includes/header.php';
 
         <div class="text-center md:text-start">
 
-            <h2 class="text-2xl sm:text-3xl text-primary-600 leading-[1.2] mb-6 font-luckiest animate-slide-right"
-                style="-webkit-text-stroke: 0.2px black;">
+            <h2 class="text-2xl sm:text-3xl text-primary-600 leading-[1.2] mb-6 font-secondary animate-slide-right"
+                style="text-shadow: 2px 2px 4px rgba(0,0,0,0.25);">
 
                 Our
                 <span class="text-accent">
@@ -141,8 +141,8 @@ require_once 'includes/header.php';
 
         <div class="text-center md:text-start">
 
-            <h2 class="text-2xl sm:text-3xl text-primary-600 leading-[1.2] mb-6 font-luckiest animate-slide-right"
-                style="-webkit-text-stroke: 0.2px black;">
+            <h2 class="text-2xl sm:text-3xl text-primary-600 leading-[1.2] mb-6 font-secondary animate-slide-right"
+                style="text-shadow: 2px 2px 4px rgba(0,0,0,0.25);">
 
                 Our
                 <span class="text-accent">
@@ -219,7 +219,7 @@ require_once 'includes/header.php';
         <!-- RIGHT CONTENT -->
         <div class="text-center lg:text-left space-y-6">
 
-            <h2 class="scroll-animate-top text-3xl md:text-5xl font-luckiest text-accent mb-3" style="-webkit-text-stroke: 0.5px black;"> From Classic to <span class="text-white">Bold — </span> Discover a Flavor for Every <span class="text-white">Mood.</span> </h2>
+            <h2 class="scroll-animate-top text-3xl md:text-5xl font-secondary text-accent mb-3"  style="text-shadow: 2px 2px 4px rgba(0,0,0,0.25);"> From Classic to <span class="text-white">Bold — </span> Discover a Flavor for Every <span class="text-white">Mood.</span> </h2>
 
             <!-- FEATURES -->
             <ul class="space-y-4 text-xs sm:text-base text-gray-800 max-w-lg text-start">
@@ -505,7 +505,7 @@ require_once 'includes/header.php';
         <div class="max-w-7xl mx-auto px-4 text-center">
 
             <!-- TITLE -->
-            <h2 class="text-3xl md:text-5xl font-luckiest text-white mb-12 md:mb-20 scroll-animate-top" style="-webkit-text-stroke: 0.5px black;">Why Choose <span class="text-accent">Earthance?</span></h2>
+            <h2 class="text-3xl md:text-5xl font-secondary text-white mb-12 md:mb-20 scroll-animate-top"  style="text-shadow: 2px 2px 4px rgba(0,0,0,0.25);">Why Choose <span class="text-accent">Earthance?</span></h2>
 
             <!-- FEATURES -->
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
@@ -635,8 +635,8 @@ require_once 'includes/header.php';
         <!-- HEADING -->
         <div class="text-center mb-12">
 
-            <h2 class="text-3xl md:text-5xl font-luckiest text-primary-600 mb-4"
-                style="-webkit-text-stroke: 0.5px black;">
+            <h2 class="text-3xl md:text-5xl font-secondary text-primary-600 mb-4"
+                 style="text-shadow: 2px 2px 4px rgba(0,0,0,0.25);">
 
                 Key Facts of
                 <span class="text-accent">
@@ -853,7 +853,7 @@ require_once 'includes/header.php';
 <!-- Call to Action -->
 <section class="py-12">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h1 class="text-2xl sm:text-3xl text-primary-600 leading-[1.2] mb-6 font-luckiest scroll-animate-top" style="-webkit-text-stroke: 0.2px black;">
+        <h1 class="text-2xl sm:text-3xl text-primary-600 leading-[1.2] mb-6 font-secondary scroll-animate-top" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.25);">
             Ready to Start
             <span class="text-accent">
                 Shopping?

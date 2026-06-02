@@ -116,29 +116,26 @@ try {
                     <div class="bg-white rounded-2xl border hover:shadow-md transition-all duration-300 overflow-hidden group">
 
                         <!-- IMAGE -->
-                        <div class="relative overflow-hidden bg-white flex items-center justify-center">
-                            <?php $imageUrl = getImageUrl($product['image'], 'products'); ?>
+                            <div class="relative overflow-hidden bg-white flex items-center justify-center">
+                                <?php $imageUrl = getImageUrl($product['image'], 'products'); ?>
+                                <a
+                                    href="<?php echo BASE_URL; ?>product.php?id=<?php echo $product['id']; ?>"
+                                    class="w-full flex items-center justify-center">
+                                    <img
+                                        src="<?php echo $imageUrl; ?>"
+                                        alt="<?php echo e($product['name']); ?>"
+                                        class="h-28 sm:h-40 md:h-44 object-contain drop-shadow-[0_80px_40px_rgba(0,0,0,0.14)] group-hover:scale-105 transition duration-300">
+                                </a>
 
-                            <a
-                                href="<?php echo BASE_URL; ?>product.php?id=<?php echo $product['id']; ?>"
-                                class="w-full flex items-center justify-center">
-                                <img
-                                    src="<?php echo $imageUrl; ?>"
-                                    alt="<?php echo e($product['name']); ?>"
-                                    class="h-28 sm:h-40 md:h-44 object-contain 
-                                               drop-shadow-[0_8px_40px_rgba(0,0,0,0.14)]
-                                               group-hover:scale-105 transition duration-300">
-                            </a>
+                                <!-- BADGES -->
+                                <?php if ($product['stock'] <= 10 && $product['stock'] > 0): ?>
+                                    <span class="absolute top-3 left-3 bg-spice/10 backdrop-blur-sm text-spice text-xs font-semibold px-2 py-1 rounded-full shadow">
+                                        Only <?php echo $product['stock']; ?> left
+                                    </span>
+                                <?php endif; ?>
 
-                            <!-- BADGES -->
-                            <?php if ($product['stock'] <= 10 && $product['stock'] > 0): ?>
-                                <span class="absolute top-3 left-3 bg-spice/10 backdrop-blur-sm text-spice text-xs font-semibold px-2 py-1 rounded-full shadow">
-                                    Only <?php echo $product['stock']; ?> left
-                                </span>
-                            <?php endif; ?>
-
-                            <?php renderWishlistIconButton($product['id'], 'absolute top-3 right-3 z-10'); ?>
-                        </div>
+                                <?php renderWishlistIconButton($product['id'], 'absolute top-3 right-3 z-10'); ?>
+                            </div>
 
                         <!-- CONTENT -->
                         <div class="p-3 md:p-4 flex flex-col justify-between h-[160px] md:h-[180px]">

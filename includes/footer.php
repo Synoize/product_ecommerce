@@ -49,9 +49,10 @@ try {
                     <ul class="space-y-4 text-gray-800 text-sm">
                         <li class="flex items-start max-w-sm">
                             <i class="fas fa-map-marker-alt mt-1 mr-2 text-accent-900"></i>
-                            House No. 04 Ground Floor, Samta Colony,
-                            Hudkeshwar Khurd,Nagpur-440037,
-                            Maharashtra, India
+                            Address is Plot No. 04, Samta Colony,
+                            Pawanputra Society, Hudkeshwar Khurd, 
+                            Outer Ring Road, Nagpur, Maharashtra, 
+                            India  - 440037
                         </li>
                         <li class="flex items-center"><i class="fas fa-phone mr-2 text-green-700"></i>+91 7313726134</li>
                         <li class="flex items-center"><i class="fas fa-envelope mr-2 text-red-600"></i>support@earthence.com</li>

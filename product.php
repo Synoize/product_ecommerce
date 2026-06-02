@@ -831,16 +831,13 @@ require_once __DIR__ . '/includes/header.php';
                             <!-- IMAGE -->
                             <div class="relative overflow-hidden bg-white flex items-center justify-center">
                                 <?php $imageUrl = getImageUrl($product['image'], 'products'); ?>
-
                                 <a
                                     href="<?php echo BASE_URL; ?>product.php?id=<?php echo $product['id']; ?>"
                                     class="w-full flex items-center justify-center">
                                     <img
                                         src="<?php echo $imageUrl; ?>"
                                         alt="<?php echo e($product['name']); ?>"
-                                        class="h-28 sm:h-40 md:h-44 object-contain 
-                                               drop-shadow-[0_8px_40px_rgba(0,0,0,0.14)]
-                                               group-hover:scale-105 transition duration-300">
+                                        class="h-28 sm:h-40 md:h-44 object-contain drop-shadow-[0_80px_40px_rgba(0,0,0,0.14)] group-hover:scale-105 transition duration-300">
                                 </a>
 
                                 <!-- BADGES -->

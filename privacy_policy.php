@@ -9,7 +9,7 @@ require_once __DIR__ . '/includes/header.php';
 <section class="py-12 md:py-20">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center">
-            <h1 class="text-3xl md:text-5xl font-luckiest text-primary-600 mb-3 scroll-animate-top" style="-webkit-text-stroke: 0.5px black;">
+            <h1 class="text-3xl md:text-5xl font-secondary text-primary-600 mb-3 scroll-animate-top" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.25);">
                 Privacy
                 <span class="text-accent">Policy</span>
             </h1>

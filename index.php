@@ -87,184 +87,106 @@ try {
 }
 ?>
 
+
 <!-- Hero Section -->
-<section class="bg-primary mt-4 py-16 md:py-20 overflow-hidden">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<section class="relative mt-4 w-full h-[300px] sm:h-[450px] md:h-[600px] lg:h-[calc(100vh-80px)] overflow-hidden">
 
-        <div class="grid md:grid-cols-2 gap-10 lg:gap-16 items-center">
+    <div class="swiper heroSwiper w-full h-full">
 
-            <!-- IMAGE (SHOW FIRST ON MOBILE) -->
-            <div class="order-1 md:order-2 relative w-full h-[200px] sm:h-[400px] md:h-[450px] lg:h-[500px] flex items-center justify-center">
-                <?php if (!empty($heroFeatures)) : ?>
+        <div class="swiper-wrapper">
+
+            <?php if (!empty($heroFeatures)): ?>
+
+                <?php foreach ($heroFeatures as $feature): ?>
 
                     <?php
-                    foreach ($heroFeatures as $feature) :
+                    $images = json_decode($feature['images'], true);
 
-                        $images = json_decode($feature['images'], true);
-
-                        if (!empty($images)) :
-
-                            foreach ($images as $image) :
+                    if (!empty($images)):
+                        foreach ($images as $image):
                     ?>
+
+                            <div class="swiper-slide">
 
                                 <img
                                     src="<?php echo IMAGES_URL . 'info_image/' . $image; ?>"
-                                    class="pkg absolute max-h-full w-auto opacity-0 scale-75">
+                                    alt="Hero Banner"
+                                    class="w-full h-full object-cover">
+
+                            </div>
 
                     <?php
-                            endforeach;
-
-                        endif;
-
-                    endforeach;
+                        endforeach;
+                    endif;
                     ?>
 
-                <?php else : ?>
+                <?php endforeach; ?>
 
-                    <!-- Fallback Images -->
-                    <img src="<?php echo IMAGES_URL; ?>info_image/pkg1.png" class="pkg absolute max-h-full w-auto opacity-0 scale-75">
-                    <img src="<?php echo IMAGES_URL; ?>info_image/pkg2.png" class="pkg absolute max-h-full w-auto opacity-0 scale-75">
-                    <img src="<?php echo IMAGES_URL; ?>info_image/pkg3.png" class="pkg absolute max-h-full w-auto opacity-0 scale-75">
+            <?php else: ?>
 
-                <?php endif; ?>
-            </div>
-
-            <!-- TEXT (SHOW BELOW ON MOBILE) -->
-            <div class="order-2 md:order-1 text-center md:text-left">
-
-                <h1 class="text-4xl sm:text-6xl text-accent leading-[1.2] mb-6 font-luckiest animate-slide-left" style="-webkit-text-stroke: 0.5px black;">
-                    Discover
-                    <span class="text-white">
-                        Delicious Snacks
-                    </span>
-                    and Indian Authentic
-                    <span class="text-white">
-                        Spices
-                    </span>
-                </h1>
-
-                <p class="text-base text-white mb-20 max-w-lg mx-auto md:mx-0 animate-slide-left">
-                    Discover the rich flavors of our carefully curated selection of wholesome snacks and aromatic spices, crafted to bring freshness, taste, and authenticity to every bite and every meal you prepare.
-                </p>
-
-                <div class="grid grid-cols-2 w-full md:max-w-sm gap-4">
-
-                    <!-- Explore Flavors -->
-                    <a href="<?php echo BASE_URL; ?>about-us.php"
-                        class="group relative inline-flex items-center justify-center
-    overflow-hidden rounded-full
-    bg-accent-500 px-8 py-3
-    font-semibold text-gray-900
-    shadow-[4px_4px_0_#000]
-    transition-all duration-500 ease-out
-    hover:-translate-y-1 hover:shadow-[6px_6px_0_#000]
-    active:translate-y-0 active:shadow-[2px_2px_0_#000]
-    animate-slide-bottom">
-
-                        <span class="transition-all duration-300 group-hover:tracking-wide text-nowrap">
-                            Explore Flavors
-                        </span>
-
-                    </a>
-
-                    <!-- Shop Now -->
-                    <a href="<?php echo BASE_URL; ?>shop.php"
-                        class="group relative inline-flex items-center justify-center
-    overflow-hidden rounded-full
-    bg-white px-8 py-3
-    font-semibold text-gray-900
-    shadow-[4px_4px_0_#000]
-    transition-all duration-500 ease-out
-    hover:-translate-y-1 hover:shadow-[6px_6px_0_#000]
-    active:translate-y-0 active:shadow-[2px_2px_0_#000]
-    animate-slide-bottom">
-                        <i class="fas fa-shopping-bag mr-2"></i>
-                        <span class="transition-all duration-300 group-hover:tracking-wide text-nowrap">
-                            Shop Now
-                        </span>
-                    </a>
-
+                <div class="swiper-slide">
+                    <img
+                        src="<?php echo IMAGES_URL; ?>info_image/hero1.webp"
+                        alt="Hero Banner"
+                        class="w-full h-full object-cover">
                 </div>
 
-            </div>
+                <div class="swiper-slide">
+                    <img
+                        src="<?php echo IMAGES_URL; ?>info_image/hero2.webp"
+                        alt="Hero Banner"
+                        class="w-full h-full object-cover">
+                </div>
 
-            <script>
-                document.addEventListener("DOMContentLoaded", () => {
+                <div class="swiper-slide">
+                    <img
+                        src="<?php echo IMAGES_URL; ?>info_image/hero3.webp"
+                        alt="Hero Banner"
+                        class="w-full h-full object-cover">
+                </div>
 
-                    const images = document.querySelectorAll(".pkg");
-
-                    const animations = [
-                        "animate-slide-left",
-                        "animate-slide-right",
-                        "animate-slide-top",
-                        "animate-slide-bottom",
-                        "animate-pop",
-                    ];
-
-                    let current = 0;
-
-                    function showNextImage() {
-
-                        // Hide current image smoothly
-                        images.forEach((img) => {
-
-                            img.classList.remove(
-                                "opacity-100",
-                                "scale-100",
-                                "animate-pop",
-                                "animate-float",
-                                "animate-slide-left",
-                                "animate-slide-right",
-                                "animate-slide-top",
-                                "animate-slide-bottom"
-                            );
-
-                            img.classList.add(
-                                "opacity-0",
-                                "scale-95",
-                                "transition-all",
-                                "duration-700",
-                                "ease-in-out"
-                            );
-                        });
-
-                        // Active image
-                        const activeImage = images[current];
-
-                        const randomAnimation =
-                            animations[Math.floor(Math.random() * animations.length)];
-
-                        activeImage.classList.remove(
-                            "opacity-0",
-                            "scale-95"
-                        );
-
-                        activeImage.classList.add(
-                            "opacity-100",
-                            "scale-100",
-                            randomAnimation,
-                            "transition-all",
-                            "duration-700",
-                            "ease-in-out"
-                        );
-
-                        // Floating effect after entrance
-                        setTimeout(() => {
-                            activeImage.classList.add("animate-float");
-                        }, 700);
-
-                        current = (current + 1) % images.length;
-                    }
-
-                    showNextImage();
-
-                    setInterval(showNextImage, 4500);
-                });
-            </script>
+            <?php endif; ?>
 
         </div>
+
+        <!-- Pagination -->
+        <div class="swiper-pagination"></div>
+
     </div>
+
 </section>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    new Swiper(".heroSwiper", {
+
+        slidesPerView: 1,
+        spaceBetween: 0,
+        loop: true,
+
+        speed: 1000,
+
+        effect: "fade",
+
+        fadeEffect: {
+            crossFade: true
+        },
+
+        autoplay: {
+            delay: 4000,
+            disableOnInteraction: false,
+        },
+
+        pagination: {
+            el: ".swiper-pagination",
+            clickable: true,
+        },
+
+    });
+
+});
+</script>
 
 <!-- Categories Section -->
 <section class="py-20 bg-white">
@@ -272,7 +194,8 @@ try {
 
         <!-- Heading -->
         <div class="text-center mb-12 scroll-animate-top">
-            <h2 class="text-3xl md:text-5xl font-luckiest text-primary mb-2" style="-webkit-text-stroke: 0.5px black;">
+            
+            <h2 class="text-3xl md:text-5xl font-secondary text-primary mb-2"  style="text-shadow: 2px 2px 4px rgba(0,0,0,0.25);">
                 Shop by
                 <span class="text-accent">
                     Category
@@ -333,7 +256,7 @@ try {
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-end mb-12">
             <div class="scroll-animate-top mx-auto md:mx-0 text-center md:text-left">
-                <h2 class="text-3xl md:text-5xl font-luckiest text-primary mb-2" style="-webkit-text-stroke: 0.5px black;">Featured <span class="text-accent">Products</span></h2>
+                <h2 class="text-3xl md:text-5xl font-secondary text-primary mb-2"  style="text-shadow: 2px 2px 4px rgba(0,0,0,0.25);">Featured <span class="text-accent">Products</span></h2>
                 <p class="text-gray-500 text-base">Handpicked items just for you</p>
             </div>
             <a href="<?php echo BASE_URL; ?>shop.php"
@@ -354,18 +277,15 @@ try {
                 <div class="bg-white rounded-2xl border hover:shadow-md transition-all duration-300 overflow-hidden group">
 
                     <!-- IMAGE -->
-                    <div class="relative overflow-hidden p-2 bg-white flex items-center justify-center">
+                    <div class="relative overflow-hidden bg-white flex items-center justify-center">
                         <?php $imageUrl = getImageUrl($product['image'], 'products'); ?>
-
                         <a
                             href="<?php echo BASE_URL; ?>product.php?id=<?php echo $product['id']; ?>"
                             class="w-full flex items-center justify-center">
                             <img
                                 src="<?php echo $imageUrl; ?>"
                                 alt="<?php echo e($product['name']); ?>"
-                                class="h-28 sm:h-40 md:h-44 object-contain 
-                                               drop-shadow-[0_8px_40px_rgba(0,0,0,0.14)]
-                                               group-hover:scale-105 transition duration-300">
+                                class="h-28 sm:h-40 md:h-44 object-contain drop-shadow-[0_80px_40px_rgba(0,0,0,0.14)] group-hover:scale-105 transition duration-300">
                         </a>
 
                         <!-- BADGES -->
@@ -478,7 +398,7 @@ try {
 
         <!-- Heading -->
         <div class="text-center px-4 scroll-animate-top">
-            <h2 class="text-3xl sm:text-5xl font-luckiest text-primary-600 leading-tight" style="-webkit-text-stroke: 0.5px black;">
+            <h2 class="text-3xl sm:text-5xl font-secondary text-primary-600 leading-tight"  style="text-shadow: 2px 2px 4px rgba(0,0,0,0.25);">
                 Crunch. Watch.
                 <span class="text-accent">
                     Enjoy.
@@ -543,7 +463,7 @@ try {
                                 <?php endif; ?>
 
                                 <!-- Overlay -->
-                                <div class="absolute inset-0 bg-gradient-to-t from-black/10 via-black/10 to-transparent pointer-events-none"></div>
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/5 via-black/5 to-transparent pointer-events-none"></div>
 
                             </div>
 
@@ -566,7 +486,7 @@ try {
                 class="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-30
         w-12 h-12 flex items-center justify-center
         rounded-full bg-white/90 backdrop-blur-sm shadow-sm
-        text-primary hover:bg-primary hover:text-white
+        text-gray-400 hover:bg-primary hover:text-white
         transition duration-300">
 
                 <i data-lucide="chevron-left" class="w-5 h-5"></i>
@@ -577,7 +497,7 @@ try {
                 class="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-30
         w-12 h-12 flex items-center justify-center
         rounded-full bg-white/90 backdrop-blur-sm shadow-sm
-        text-primary hover:bg-primary hover:text-white
+        text-gray-400 hover:bg-primary hover:text-white
         transition duration-300">
 
                 <i data-lucide="chevron-right" class="w-5 h-5"></i>
@@ -663,7 +583,7 @@ try {
         <!-- RIGHT CONTENT -->
         <div class="text-center lg:text-left space-y-6">
 
-            <h2 class="scroll-animate-top text-3xl md:text-5xl font-luckiest text-accent mb-3" style="-webkit-text-stroke: 0.5px black;">
+            <h2 class="scroll-animate-top text-3xl md:text-5xl font-secondary text-accent mb-3"  style="text-shadow: 2px 2px 4px rgba(0,0,0,0.25);">
                 From Classic to
                 <span class="text-white">Bold — </span> Discover a Flavor for Every
                 <span class="text-white">Mood.</span>
@@ -759,7 +679,7 @@ try {
 <section class="bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="scroll-animate-top text-center mb-12">
-            <h2 class="text-3xl md:text-5xl font-luckiest text-primary-600 mb-2" style="-webkit-text-stroke: 0.5px black;">Trending <span class="text-accent">Now</span></h2>
+            <h2 class="text-3xl md:text-5xl font-secondary text-primary-600 mb-2"  style="text-shadow: 2px 2px 4px rgba(0,0,0,0.25);">Trending <span class="text-accent">Now</span></h2>
             <p class="text-gray-500 text-base">Most popular items this week</p>
         </div>
 
@@ -768,18 +688,15 @@ try {
                 <div class="bg-white rounded-2xl border hover:shadow-md transition-all duration-300 overflow-hidden group">
 
                     <!-- IMAGE -->
-                    <div class="relative overflow-hidden p-2 bg-white flex items-center justify-center">
+                    <div class="relative overflow-hidden bg-white flex items-center justify-center">
                         <?php $imageUrl = getImageUrl($product['image'], 'products'); ?>
-
                         <a
                             href="<?php echo BASE_URL; ?>product.php?id=<?php echo $product['id']; ?>"
                             class="w-full flex items-center justify-center">
                             <img
                                 src="<?php echo $imageUrl; ?>"
                                 alt="<?php echo e($product['name']); ?>"
-                                class="h-28 sm:h-40 md:h-44 object-contain 
-                                               drop-shadow-[0_8px_40px_rgba(0,0,0,0.14)]
-                                               group-hover:scale-105 transition duration-300">
+                                class="h-28 sm:h-40 md:h-44 object-contain drop-shadow-[0_80px_40px_rgba(0,0,0,0.14)] group-hover:scale-105 transition duration-300">
                         </a>
 
                         <!-- BADGES -->
@@ -901,7 +818,7 @@ try {
         <div class="max-w-7xl mx-auto px-4 text-center">
 
             <!-- TITLE -->
-            <h2 class="text-3xl md:text-5xl font-luckiest text-white mb-12 md:mb-20 scroll-animate-top" style="-webkit-text-stroke: 0.5px black;">Why Choose <span class="text-accent">Earthance?</span></h2>
+            <h2 class="text-3xl md:text-5xl font-secondary text-white mb-12 md:mb-20 scroll-animate-top"  style="text-shadow: 2px 2px 4px rgba(0,0,0,0.25);">Why Choose <span class="text-accent">Earthance?</span></h2>
 
             <!-- FEATURES -->
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
@@ -1204,7 +1121,7 @@ try {
 <section>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="max-w-2xl mx-auto text-center">
-            <h2 class="text-3xl md:text-5xl font-luckiest text-primary-600 mb-6 scroll-animate-top" style="-webkit-text-stroke: 0.5px black;">Subscribe to <span class="text-accent">Our Newsletter</span></h2>
+            <h2 class="text-3xl md:text-5xl font-secondary text-primary-600 mb-6 scroll-animate-top"  style="text-shadow: 2px 2px 4px rgba(0,0,0,0.25);">Subscribe to <span class="text-accent">Our Newsletter</span></h2>
             <p class="text-gray-500 text-base mb-12 scroll-animate-top">Get the latest updates on new products and exclusive offers</p>
 
             <form class="flex flex-col sm:flex-row gap-4" action="<?php echo BASE_URL; ?>subscribe.php" method="POST">

@@ -373,7 +373,7 @@ unset($paginationParams['flavour'], $paginationParams['weight']);
                         <div class="space-y-2">
                             <a href="<?php echo BASE_URL; ?>shop.php?<?php echo shopQuery(['category' => 0]); ?>"
                                 class="block px-5 py-3 rounded-lg text-sm text-gray-600 <?php echo $categoryId == 0 ? 'bg-primary-100 font-medium' : 'hover:bg-gray-50'; ?>">
-                                <i class="fas fa-shop text-primary-600 mr-4"></i> All Categories
+                                <i class="fas fa-shopping-bag text-primary-600 mr-4"></i> All Categories
                             </a>
                             <?php foreach ($categories as $category): ?>
                                 <a href="<?php echo BASE_URL; ?>shop.php?<?php echo shopQuery(['category' => $category['id']]); ?>"
@@ -458,24 +458,21 @@ unset($paginationParams['flavour'], $paginationParams['weight']);
                         <div class="bg-white rounded-2xl border hover:shadow-md transition-all duration-300 overflow-hidden group">
 
                             <!-- IMAGE -->
-                            <div class="relative overflow-hidden p-2 bg-white flex items-center justify-center">
+                            <div class="relative overflow-hidden bg-white flex items-center justify-center">
                                 <?php $imageUrl = getImageUrl($product['image'], 'products'); ?>
-
                                 <a
                                     href="<?php echo BASE_URL; ?>product.php?id=<?php echo $product['id']; ?>"
                                     class="w-full flex items-center justify-center">
                                     <img
                                         src="<?php echo $imageUrl; ?>"
                                         alt="<?php echo e($product['name']); ?>"
-                                        class="h-28 sm:h-40 md:h-44 object-contain 
-                                               drop-shadow-[0_8px_40px_rgba(0,0,0,0.14)]
-                                               group-hover:scale-105 transition duration-300">
+                                        class="h-28 sm:h-40 md:h-44 object-contain drop-shadow-[0_80px_40px_rgba(0,0,0,0.14)] group-hover:scale-105 transition duration-300">
                                 </a>
 
                                 <!-- BADGES -->
-                                <?php if ($cardStock <= 10 && $cardStock > 0): ?>
+                                <?php if ($product['stock'] <= 10 && $product['stock'] > 0): ?>
                                     <span class="absolute top-3 left-3 bg-spice/10 backdrop-blur-sm text-spice text-xs font-semibold px-2 py-1 rounded-full shadow">
-                                        Only <?php echo $cardStock; ?> left
+                                        Only <?php echo $product['stock']; ?> left
                                     </span>
                                 <?php endif; ?>
 

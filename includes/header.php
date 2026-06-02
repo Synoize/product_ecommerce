@@ -37,12 +37,17 @@ try {
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Luckiest+Guy&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Outfit:wght@100..900&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&family=Palanquin+Dark:wght@400;500;600;700&family=Patrick+Hand+SC&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Protest+Revolution&family=Roboto:ital,wght@0,100..900;1,100..900&family=Rubik:ital,wght@0,300..900;1,300..900&family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&family=Source+Sans+3:ital,wght@0,200..900;1,200..900&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fugaz+One&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Protest+Revolution&display=swap" rel="stylesheet">
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
     <!-- Tailwind Config -->
     <script>
@@ -88,8 +93,8 @@ try {
                     },
 
                     fontFamily: {
-                        sans: ['sans-serif'],
-                        luckiest: ['Luckiest Guy', 'cursive'],
+                        sans: ["sans-serif"],
+                        secondary: ["Protest Revolution", "sans-serif"],
                     },
 
                     keyframes: {
@@ -353,7 +358,7 @@ try {
     <?php endif; ?>
 
     <!-- Navigation -->
-    <nav class="fixed top-0 left-0 right-0 bg-white shadow-sm z-40 md:animate-slide-top">
+    <nav class="fixed top-0 left-0 right-0 bg-white shadow-sm z-40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-20">
                 <!-- Mobile Menu Button -->
@@ -738,7 +743,7 @@ try {
         <?php echo basename($_SERVER['PHP_SELF']) === 'admin'
                                 ? 'bg-primary-50 text-primary-600 font-medium'
                                 : 'text-gray-700 hover:bg-gray-50 hover:text-primary-600'; ?>">
-                                
+
                             </a>
 
                             <a href="<?php echo BASE_URL; ?>admin"
@@ -746,7 +751,7 @@ try {
                 <?php echo basename($_SERVER['PHP_SELF']) === 'admin'
                                 ? 'bg-primary-50 text-primary-600 font-medium'
                                 : 'text-gray-700 hover:bg-gray-50'; ?>">
-                               <i class="fas fa-user-tie mr-3"></i> Admin Dashboard
+                                <i class="fas fa-user-tie mr-3"></i> Admin Dashboard
                             </a>
                         <?php endif; ?>
 

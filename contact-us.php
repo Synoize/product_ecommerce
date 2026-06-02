@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <!-- Page Header -->
 <section class="py-12 md:py-20">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h1 class="text-3xl sm:text-5xl text-primary-600 leading-[1.2] mb-6 font-luckiest animate-slide-top" style="-webkit-text-stroke: 0.5px black;">
+        <h1 class="text-3xl sm:text-5xl text-primary-600 leading-[1.2] mb-6 font-secondary animate-slide-top" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.25);">
             Contact
             <span class="text-accent">
                 Us
@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <!-- Contact Info -->
         <div class="lg:col-span-1 animate-slide-left">
             <div class="bg-white h-full">
-                <h4 class="text-2xl sm:text-3xl text-primary-600 leading-[1.2] mb-6 font-luckiest" style="-webkit-text-stroke: 0.2px black;">
+                <h4 class="text-2xl sm:text-3xl text-primary-600 leading-[1.2] mb-6 font-secondary" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.25);">
                     Get In
                     <span class="text-accent">
                         Touch
@@ -83,9 +83,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div>
                         <h6 class="font-bold text-gray-900 mb-1">Address</h6>
                         <p class="text-gray-600 text-sm leading-relaxed">
-                            House No. 04 Ground Floor, Samta Colony, <br>
-                            Hudkeshwar Khurd,Nagpur-440037,<br>
-                            Maharashtra, India
+                           Address is Plot No. 04, Samta Colony, <br>
+                            Pawanputra Society, Hudkeshwar Khurd, <br>
+                            Outer Ring Road, Nagpur, Maharashtra, <br>
+                            India  - 440037
                         </p>
                     </div>
                 </div>
@@ -229,13 +230,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <!-- Heading -->
         <div class="text-center mb-14">
-            <h2 class="text-2xl sm:text-3xl font-luckiest text-primary-600 leading-tight scroll-animate-top">
+            <h2 class="text-2xl sm:text-3xl font-secondary text-primary-600 leading-tight scroll-animate-top">
                
                 <span class="text-accent" style="-webkit-text-stroke:1px black;">
                    
                 </span>
             </h2>
-            <h4 class="text-2xl sm:text-3xl text-primary-600 leading-[1.2] mb-6 font-luckiest animate-slide-top" style="-webkit-text-stroke: 0.2px black;">
+            <h4 class="text-2xl sm:text-3xl text-primary-600 leading-[1.2] mb-6 font-secondary animate-slide-top" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.25);">
                 Frequently
                 <span class="text-accent">
                     Asked Questions
