@@ -1,7 +1,7 @@
 <!-- Floating WhatsApp Button -->
 <div class="fixed bottom-5 right-4 md:bottom-6 md:right-6 z-50">
 
-    <a href="https://wa.me/919876543210"
+    <a href="https://wa.me/919665661603?text=Hello%20Earthence!%20I%20have%20a%20query%20regarding%20your%20products."
         target="_blank"
         aria-label="WhatsApp Chat"
         class="group relative flex items-center justify-center animate-float ">

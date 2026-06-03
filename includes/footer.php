@@ -54,7 +54,7 @@ try {
                             Outer Ring Road, Nagpur, Maharashtra, 
                             India  - 440037
                         </li>
-                        <li class="flex items-center"><i class="fas fa-phone mr-2 text-green-700"></i>+91 7313726134</li>
+                        <li class="flex items-center"><i class="fas fa-phone mr-2 text-green-700"></i>+91 9665661603, +91 7218927236</li>
                         <li class="flex items-center"><i class="fas fa-envelope mr-2 text-red-600"></i>support@earthence.com</li>
                     </ul>
                 </div>

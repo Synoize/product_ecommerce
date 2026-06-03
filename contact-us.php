@@ -100,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div>
                         <h6 class="font-bold text-gray-900 mb-1">Phone</h6>
                         <p class="text-gray-600 text-sm leading-relaxed">
-                           +91 7313726134
+                           +91 9665661603, +91 7218927236
                         </p>
                     </div>
                 </div>
