@@ -81,7 +81,7 @@ try {
 
 <!-- Breadcrumb -->
 <section class="py-12">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12">
         <nav class="text-sm text-gray-600 mb-2">
             <ol class="flex items-center space-x-2">
                 <li><a href="<?php echo BASE_URL; ?>" class="hover:text-primary">Home</a></li>
@@ -97,7 +97,7 @@ try {
 
 <!-- Wishlist Section -->
 <section>
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12">
 
         <?php if (empty($wishlistItems)): ?>
             <div class="p-12 text-center">
@@ -111,7 +111,7 @@ try {
                 </a>
             </div>
         <?php else: ?>
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 lg:gap-6">
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 lg:gap-6">
                 <?php foreach ($wishlistItems as $product): ?>
                     <div class="bg-white rounded-2xl border hover:shadow-md transition-all duration-300 overflow-hidden group">
 

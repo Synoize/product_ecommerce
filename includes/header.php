@@ -359,7 +359,7 @@ try {
 
     <!-- Navigation -->
     <nav class="fixed top-0 left-0 right-0 bg-white shadow-sm z-40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12">
             <div class="flex justify-between items-center h-20">
                 <!-- Mobile Menu Button -->
                 <button id="mobileMenuBtn" class="md:hidden text-gray-400 hover:text-gray-500 text-xl relative z-50">

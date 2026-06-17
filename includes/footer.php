@@ -36,7 +36,7 @@ try {
     </svg>
 
     <div class="bg-primary py-8 md:py-10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+       <div class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 mb-8 text-gray-800">
                 <!-- About Column -->
                 <div class="lg:col-span-2">

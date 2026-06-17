@@ -9,7 +9,7 @@
 define('DB_HOST', 'localhost');
 define('DB_USERNAME', 'root');
 define('DB_PASSWORD', '');
-define('DB_NAME', 'ecommerce_db');
+define('DB_NAME', 'saisafar_theearthence');
 
 // Base URL Configuration
 $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';

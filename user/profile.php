@@ -105,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 
 <div class="min-h-screen mt-12">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
             <!-- Sidebar -->
             <?php require_once __DIR__ . '/../includes/profile_sidebar.php'; ?>

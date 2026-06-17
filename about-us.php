@@ -33,7 +33,7 @@ require_once 'includes/header.php';
 </section>
 
 <!-- ABOUT CONTENT -->
-<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<section class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12">
 
     <!-- WHO WE ARE -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">

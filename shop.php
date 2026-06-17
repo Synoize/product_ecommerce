@@ -201,7 +201,7 @@ unset($paginationParams['flavour'], $paginationParams['weight']);
 
 <!-- Shop Content -->
 <section class="py-12">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12">
 
         <style>
             @media (max-width: 1023px) {
@@ -446,7 +446,7 @@ unset($paginationParams['flavour'], $paginationParams['weight']);
                 </div>
 
                 <!-- Products Grid -->
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-3 lg:gap-6">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-6">
                     <?php foreach ($products as $product): ?>
                         <?php
                         $cardPrice = !empty($product['variant_min_price']) ? (float)$product['variant_min_price'] : (float)$product['price'];

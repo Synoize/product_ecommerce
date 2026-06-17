@@ -57,7 +57,7 @@ try {
                          LEFT JOIN categories c ON p.category_id = c.id 
                          WHERE p.status = 1 
                          ORDER BY p.created_at DESC 
-                         LIMIT 8");
+                         LIMIT 10");
     $featuredProducts = $stmt->fetchAll();
 } catch (PDOException $e) {
     // Products table might not exist yet
@@ -80,7 +80,7 @@ try {
                          LEFT JOIN categories c ON p.category_id = c.id 
                          WHERE p.status = 1 
                          ORDER BY RAND() 
-                         LIMIT 4");
+                         LIMIT 10");
     $trendingProducts = $stmt->fetchAll();
 } catch (PDOException $e) {
     // Silent fail
@@ -190,7 +190,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 <!-- Categories Section -->
 <section class="py-20 bg-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12">
 
         <!-- Heading -->
         <div class="text-center mb-12 scroll-animate-top">
@@ -207,7 +207,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
 
         <!-- Categories Container -->
-        <div class="flex gap-4 md:gap-16 overflow-x-auto 
+        <div class="flex gap-3 sm:gap-16 overflow-x-auto 
                 justify-center md:justify-center 
                  [&::-webkit-scrollbar]:hidden 
             scrollbar-hide">
@@ -223,14 +223,11 @@ document.addEventListener("DOMContentLoaded", () => {
                         <?php if ($category['image']): ?>
                             <img src="<?php echo getImageUrl($category['image'], 'categories'); ?>"
                                 alt="<?php echo e($category['name']); ?>"
-                                class="w-full h-20 md:h-48 object-contain 
+                                class="w-full h-16 md:h-48 object-contain 
                           mx-auto">
                         <?php else: ?>
-                            <div class="w-full h-24 md:h-48 bg-gradient-to-br from-primary-400 to-primary-600 
+                            <div class="w-full h-20 md:h-48 bg-slate-100 
                           flex items-center justify-center rounded-xl">
-                                <span class="text-white font-bold text-center px-2">
-                                    <?php echo e($category['name']); ?>
-                                </span>
                             </div>
                         <?php endif; ?>
 
@@ -253,7 +250,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 <!-- Featured Products Section -->
 <section>
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+   <div class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12">
         <div class="flex justify-between items-end mb-12">
             <div class="scroll-animate-top mx-auto md:mx-0 text-center md:text-left">
                 <h2 class="text-3xl md:text-5xl font-secondary text-primary mb-2"  style="text-shadow: 2px 2px 4px rgba(0,0,0,0.25);">Featured <span class="text-accent">Products</span></h2>
@@ -272,7 +269,7 @@ document.addEventListener("DOMContentLoaded", () => {
             </a>
         </div>
 
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-8">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-8">
             <?php foreach ($featuredProducts as $product): ?>
                 <div class="bg-white rounded-2xl border hover:shadow-md transition-all duration-300 overflow-hidden group">
 
@@ -394,7 +391,7 @@ document.addEventListener("DOMContentLoaded", () => {
 <!-- Featured Videos Section -->
 <section class="pt-20">
 
-    <div class="relative mx-auto max-w-7xl">
+    <div class="relative max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12">
 
         <!-- Heading -->
         <div class="text-center px-4 scroll-animate-top">
@@ -483,8 +480,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             <!-- Left Button -->
             <button onclick="scrollCarousel(-1)"
-                class="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-30
-        w-12 h-12 flex items-center justify-center
+                class="absolute left-0 md:left-4 top-1/2 -translate-y-1/2 z-30
+        w-10 h-10 flex items-center justify-center
         rounded-full bg-white/90 backdrop-blur-sm shadow-sm
         text-gray-400 hover:bg-primary hover:text-white
         transition duration-300">
@@ -494,8 +491,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             <!-- Right Button -->
             <button onclick="scrollCarousel(1)"
-                class="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-30
-        w-12 h-12 flex items-center justify-center
+                class="absolute right-0 md:right-4 top-1/2 -translate-y-1/2 z-30
+        w-10 h-10 flex items-center justify-center
         rounded-full bg-white/90 backdrop-blur-sm shadow-sm
         text-gray-400 hover:bg-primary hover:text-white
         transition duration-300">
@@ -677,13 +674,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
 <!-- Trending Products Section -->
 <section class="bg-white">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12">
         <div class="scroll-animate-top text-center mb-12">
             <h2 class="text-3xl md:text-5xl font-secondary text-primary-600 mb-2"  style="text-shadow: 2px 2px 4px rgba(0,0,0,0.25);">Trending <span class="text-accent">Now</span></h2>
             <p class="text-gray-500 text-base">Most popular items this week</p>
         </div>
 
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-8">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-8">
             <?php foreach ($trendingProducts as $product): ?>
                 <div class="bg-white rounded-2xl border hover:shadow-md transition-all duration-300 overflow-hidden group">
 

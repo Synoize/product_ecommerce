@@ -260,7 +260,7 @@ $total = $subtotal - $discount;
 
 <!-- Page Header -->
 <section class="py-12">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12">
         <nav class="text-sm text-gray-600 mb-2">
             <ol class="flex items-center space-x-2">
                 <li><a href="<?php echo BASE_URL; ?>" class="hover:text-primary">Home</a></li>
@@ -274,7 +274,7 @@ $total = $subtotal - $discount;
 
 <!-- Cart Content -->
 <section>
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12">
         <?php if (empty($_SESSION['cart'])): ?>
             <!-- Empty Cart -->
             <div class="text-center py-16">

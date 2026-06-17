@@ -4,7 +4,7 @@
 -- Run this after database.sql
 -- =========================================================
 
-USE if0_42013005_theearthence;
+USE saisafar_theearthence;
 
 -- =========================================================
 -- USERS
@@ -463,7 +463,7 @@ INSERT INTO `hero_features`
 )
 VALUES
 (
-    '["pkg1.png","pkg2.png","pkg3.png"]'
+    '["hero.png","hero2.png","hero.png"]'
 );
 
 INSERT INTO `featured_products_video`
@@ -472,8 +472,8 @@ INSERT INTO `featured_products_video`
     `file_path`
 )
 VALUES
-('Best Seller', 'makhana-classic.mp4'),
-('Cheesy', 'https://www.youtube.com/embed/dQw4w9WgXcQ'),
-('Spicy', 'peri-peri-makhana.mp4'),
-('Hot Deal', 'https://www.youtube.com/embed/dQw4w9WgXcQ'),
+('Healthy Snack', 'https://www.youtube.com/embed/QZiVjyXBRyU'),
+('Cheesy', 'https://www.youtube.com/embed/k50RTaKVR34'),
+('Spicy', 'https://www.youtube.com/embed/k50RTaKVR34'),
+('Hot Deal', 'https://www.youtube.com/embed/k50RTaKVR34'),
 ('Premium', 'premium-spices.mp4');

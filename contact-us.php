@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <!-- Page Header -->
 <section class="py-12 md:py-20">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <div class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12">
         <h1 class="text-3xl sm:text-5xl text-primary-600 leading-[1.2] mb-6 font-secondary animate-slide-top" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.25);">
             Contact
             <span class="text-accent">
@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </section>
 
 <!-- Contact Content -->
-<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<section class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12">
     <div class="flex flex-col-reverse md:grid grid-cols-1 lg:grid-cols-3 gap-12">
         <!-- Contact Info -->
         <div class="lg:col-span-1 animate-slide-left">

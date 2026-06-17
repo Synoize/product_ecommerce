@@ -241,7 +241,7 @@ require_once __DIR__ . '/includes/header.php';
 
 <!-- Breadcrumb -->
 <section class="py-12">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12">
         <nav class="text-sm text-gray-600">
             <ol class="flex items-center space-x-2">
                 <li><a href="<?php echo BASE_URL; ?>" class="hover:text-primary">Home</a></li>
@@ -256,8 +256,8 @@ require_once __DIR__ . '/includes/header.php';
 
 <!-- Product Detail -->
 <section>
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12">
+        <div class="grid grid-cols-1 lg:grid-cols-[0.7fr_1fr] gap-8">
             <!-- Product Gallery -->
             <div>
                 <div class="space-y-4">
@@ -267,7 +267,7 @@ require_once __DIR__ . '/includes/header.php';
                         $mainImageUrl = !empty($gallery) ? getImageUrl($gallery[0], 'products') : getImageUrl($product['image'], 'products');
                         ?>
                         <?php renderWishlistIconButton($product['id'], 'absolute top-4 right-4 z-10'); ?>
-                        <img src="<?php echo $mainImageUrl; ?>" id="mainProductImage" alt="<?php echo e($product['name']); ?>" class="w-full max-h-96 min-h-90 object-contain">
+                        <img src="<?php echo $mainImageUrl; ?>" id="mainProductImage" alt="<?php echo e($product['name']); ?>" class="w-full h-[320px] sm:h-96 object-contain">
                     </div>
 
                     <!-- Thumbnail Images -->

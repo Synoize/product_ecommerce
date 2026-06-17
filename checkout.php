@@ -224,7 +224,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <!-- Page Header -->
 <section class="md:py-12 pt-12 pb-6">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12">
         <nav class="text-sm text-gray-600 mb-2">
             <ol class="flex items-center space-x-2">
                 <li><a href="<?php echo BASE_URL; ?>" class="hover:text-primary">Home</a></li>
@@ -240,7 +240,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <!-- Checkout Content -->
 <section>
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-12">
         <?php if (!empty($errors)): ?>
             <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
                 <ul class="mb-0 list-disc list-inside">
