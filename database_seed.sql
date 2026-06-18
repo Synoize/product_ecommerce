@@ -121,7 +121,7 @@ VALUES
     '100g',
     249.00,
     100,
-    'makhana-premium.png',
+    'p1.png',
     '["makhana1.png","makhana2.png"]',
     1,
     NOW()
@@ -138,7 +138,7 @@ VALUES
     '100g',
     259.00,
     80,
-    'masala-makhana.png',
+    'p1.png',
     '["masala1.png","masala2.png"]',
     1,
     NOW()
@@ -155,7 +155,7 @@ VALUES
     '400g',
     199.00,
     150,
-    'aloo-bhujia.png',
+    'p1.png',
     '["bhujia1.png","bhujia2.png"]',
     1,
     NOW()
@@ -172,7 +172,7 @@ VALUES
     '400g',
     219.00,
     120,
-    'moongdal.png',
+    'p1.png',
     '["moong1.png","moong2.png"]',
     1,
     NOW()
@@ -189,7 +189,7 @@ VALUES
     '400g',
     229.00,
     85,
-    'khatta-meetha.png',
+    'p1.png',
     '["mix1.png","mix2.png"]',
     1,
     NOW()
@@ -210,7 +210,7 @@ VALUES
     '250g',
     149.00,
     100,
-    'turmeric.png',
+    'p1.png',
     '["turmeric1.png","turmeric2.png"]',
     1,
     NOW()
@@ -244,7 +244,7 @@ VALUES
     '100g',
     229.00,
     90,
-    'garam-masala.png',
+    'p1.png',
     '["garam1.png","garam2.png"]',
     1,
     NOW()
@@ -261,7 +261,7 @@ VALUES
     '100g',
     139.00,
     100,
-    'kitchen-king.png',
+    'p1.png',
     '["kitchen1.png","kitchen2.png"]',
     1,
     NOW()
@@ -278,7 +278,7 @@ VALUES
     '100g',
     179.00,
     80,
-    'black-pepper.png',
+    'p1.png',
     '["pepper1.png","pepper2.png"]',
     1,
     NOW()
